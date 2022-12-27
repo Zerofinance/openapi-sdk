@@ -1,6 +1,6 @@
 package com.zerofinance.xpay.openapi.sdk.v1.utils;
 
-import org.apache.commons.codec.binary.Base64;
+import cn.hutool.core.codec.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -46,7 +46,7 @@ public class AESEncryptUtils {
             cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(encryptKey.getBytes(), "AES"), iv);
             byte[] b = cipher.doFinal(content.getBytes(StandardCharsets.UTF_8));
             // 采用base64算法进行转码,避免出现中文乱码
-            return Base64.encodeBase64String(b);
+            return Base64.encode(b);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -68,7 +68,7 @@ public class AESEncryptUtils {
             IvParameterSpec iv = new IvParameterSpec(SIV);
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(decryptKey.getBytes(), "AES"), iv);
             // 采用base64算法进行转码,避免出现中文乱码
-            byte[] encryptBytes = Base64.decodeBase64(encryptStr);
+            byte[] encryptBytes = Base64.decode(encryptStr);
             byte[] decryptBytes = cipher.doFinal(encryptBytes);
             return new String(decryptBytes);
         } catch (Exception e) {

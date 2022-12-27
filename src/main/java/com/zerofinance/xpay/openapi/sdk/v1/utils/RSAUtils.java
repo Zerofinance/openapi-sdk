@@ -18,7 +18,7 @@
  */
 package com.zerofinance.xpay.openapi.sdk.v1.utils;
 
-import org.apache.commons.codec.binary.Base64;
+import cn.hutool.core.codec.Base64;
 
 import javax.crypto.Cipher;
 import java.security.*;
@@ -79,14 +79,14 @@ public final class RSAUtils {
      */
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
     public static byte[] decrypt(byte[] encryptedData, String publicKey) throws Exception {
-        byte[] keyBytes = Base64.decodeBase64(publicKey);
+        byte[] keyBytes = Base64.decode(publicKey);
         X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
         Key publicKey1K = keyFactory.generatePublic(x509KeySpec);
         
         Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, publicKey1K);
-        return cipher.doFinal(Base64.decodeBase64(encryptedData));
+        return cipher.doFinal(Base64.decode(encryptedData));
     }
     
     /**
@@ -100,14 +100,14 @@ public final class RSAUtils {
      * @throws Exception Exception
      */
     public static byte[] encrypt(byte[] data, String privateKey) throws Exception {
-        byte[] keyBytes = Base64.decodeBase64(privateKey);
+        byte[] keyBytes = Base64.decode(privateKey);
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
         PrivateKey privateK = keyFactory.generatePrivate(pkcs8KeySpec);
         
         Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, privateK);
-        return Base64.encodeBase64(cipher.doFinal(data));
+        return Base64.encode(cipher.doFinal(data)).getBytes();
     }
     
     /**
@@ -141,7 +141,7 @@ public final class RSAUtils {
      */
     public static String getPrivateKey(Map<String, Object> keyMap) throws Exception {
         Key key = (Key) keyMap.get(PRIVATE_KEY);
-        return new String(Base64.encodeBase64(key.getEncoded()));
+        return new String(Base64.encode(key.getEncoded()));
     }
     
     /**
@@ -155,7 +155,7 @@ public final class RSAUtils {
      */
     public static String getPublicKey(Map<String, Object> keyMap) throws Exception {
         Key key = (Key) keyMap.get(PUBLIC_KEY);
-        return new String(Base64.encodeBase64(key.getEncoded()));
+        return new String(Base64.encode(key.getEncoded()));
     }
     
     /**
@@ -170,14 +170,14 @@ public final class RSAUtils {
      * @throws Exception Exception
      */
     public static String sign(byte[] data, String privateKey) throws Exception {
-        byte[] keyBytes = Base64.decodeBase64(privateKey);
+        byte[] keyBytes = Base64.decode(privateKey);
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
         PrivateKey privateK = keyFactory.generatePrivate(pkcs8KeySpec);
         Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
         signature.initSign(privateK);
         signature.update(data);
-        return new String(Base64.encodeBase64(signature.sign()));
+        return new String(Base64.encode(signature.sign()));
     }
     
     /**
@@ -194,25 +194,25 @@ public final class RSAUtils {
      *
      */
     public static boolean verify(byte[] data, String publicKey, String sign) throws Exception {
-        byte[] keyBytes = Base64.decodeBase64(publicKey);
+        byte[] keyBytes = Base64.decode(publicKey);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
         PublicKey publicK = keyFactory.generatePublic(keySpec);
         Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
         signature.initVerify(publicK);
         signature.update(data);
-        return signature.verify(Base64.decodeBase64(sign));
+        return signature.verify(Base64.decode(sign));
     }
 
     public static RSAPublicKey getPublicKey(String publicKey) throws Exception {
-        byte[] keyBytes = Base64.decodeBase64(publicKey);
+        byte[] keyBytes = Base64.decode(publicKey);
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return (RSAPublicKey)keyFactory.generatePublic(keySpec);
     }
 
     public static RSAPrivateKey getPrivateKey(String privateKey) throws Exception {
-        byte[] keyBytes = Base64.decodeBase64(privateKey);
+        byte[] keyBytes = Base64.decode(privateKey);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
