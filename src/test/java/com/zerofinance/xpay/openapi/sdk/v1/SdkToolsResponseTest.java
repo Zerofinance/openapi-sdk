@@ -1,6 +1,5 @@
 package com.zerofinance.xpay.openapi.sdk.v1;
 
-import cn.hutool.core.net.url.UrlQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
 import com.zerofinance.xpay.openapi.sdk.v1.tools.SdkTools;
@@ -9,8 +8,6 @@ import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * A Testcase for SdkTools.
@@ -28,7 +25,7 @@ public class SdkToolsResponseTest {
 
     private static String aesKey;
 
-    private static String queryString;
+    private static ResponseQuery query;
 
     @BeforeClass
     public static void setUp() {
@@ -40,10 +37,10 @@ public class SdkToolsResponseTest {
     public void t1SignResponse() {
         String privateKey = rsaKey.getPrivateKey();
         String data = "{a:1,b:2,c:3}";
-        ResponseQuery query = ResponseQuery.buildSuccess(data);
-        this.queryString = SdkTools.signResponse(query, privateKey, aesKey);
-        System.out.println("queryString--->"+queryString);
-        Assert.assertNotNull(queryString);
+        query = ResponseQuery.buildSuccess(data);
+        SdkTools.signResponse(query, privateKey, aesKey);
+        System.out.println("query--->"+query);
+        Assert.assertNotNull(query);
     }
 
 
@@ -51,17 +48,15 @@ public class SdkToolsResponseTest {
     @Test
     public void t2VerifyResponse() {
         String publicKey = rsaKey.getPublicKey();
-        UrlQuery parseQuery = new UrlQuery();
-        parseQuery.parse(queryString, StandardCharsets.UTF_8);
-        boolean verified = SdkTools.verifyResponse(queryString, publicKey);
+        boolean verified = SdkTools.verifyResponse(query.getData(), query.getSign(), publicKey, aesKey);
         System.out.println("verified--->"+verified);
         Assert.assertTrue(verified);
     }
 
     @Test
     public void t3GetResponseQuery() {
-        ResponseQuery query = SdkTools.getResponseQuery(queryString, aesKey);
-        System.out.println("query--->"+query);
+        ResponseQuery query1 = SdkTools.getResponseQuery(query, aesKey);
+        System.out.println("query--->"+query1);
         Assert.assertNotNull(query);
     }
 }

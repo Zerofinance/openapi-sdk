@@ -73,24 +73,20 @@ public final class SdkTools {
         return query;
     }
 
-    public static String signResponse(ResponseQuery query, String privateKey, String aesKey) {
+    public static void signResponse(ResponseQuery query, String privateKey, String aesKey) {
         String data = query.getData();
         Assert.isTrue(StrUtil.isNotBlank(data), "data must not be emtpy!");
         String encryptData = AESEncryptUtils.encrypt(data, aesKey);
         query.setData(encryptData);
-        String md5String = SdkHelper.md5Response(query);
+        String md5String = SecureUtil.md5(encryptData);
         String sign = SdkHelper.sign(md5String, privateKey);
         query.setSign(sign);
-        String queryString = SdkHelper.buildFullResponseUrl(query);
-        return queryString;
     }
 
-    public static boolean verifyResponse(String queryString, String publicKey) {
+    public static boolean verifyResponse(String encryptData, String sign, String publicKey, String aesKey) {
         try {
-//            queryString = queryString.replaceAll("sign\\=.+?&", "");
-            ResponseQuery query  = SdkHelper.buildResponseQuery(queryString);
-            String md5String = SdkHelper.md5Response(query);
-            String sign = query.getSign();
+//            String data = AESEncryptUtils.decrypt(dataEncrypt, aesKey);
+            String md5String = SecureUtil.md5(encryptData);
             boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
             return verified;
         } catch (Exception e) {
@@ -98,10 +94,7 @@ public final class SdkTools {
         }
     }
 
-    public static ResponseQuery getResponseQuery(String queryString, String aesKey) {
-        UrlQuery parseQuery = new UrlQuery();
-        parseQuery.parse(queryString, StandardCharsets.UTF_8);
-        ResponseQuery query = SdkHelper.buildResponseQuery(queryString);
+    public static ResponseQuery getResponseQuery(ResponseQuery query, String aesKey) {
         String aesEncrypt = query.getData();
         String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
         query.setData(aesDecrypt);
@@ -124,13 +117,6 @@ public final class SdkTools {
 //            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
             String queryString = urlQuery.build(StandardCharsets.UTF_8);
 
-            return SecureUtil.md5(queryString);
-        }
-
-        private static String md5Response(ResponseQuery query) {
-            String data = query.getData();
-            Assert.isTrue(StrUtil.isNotBlank(data), "data must not be emtpy!");
-            String queryString = buildNeedSignResponseUrl(query);
             return SecureUtil.md5(queryString);
         }
 
@@ -164,15 +150,6 @@ public final class SdkTools {
                     .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
                     .build();
             return query;
-        }
-
-        private static String buildNeedSignResponseUrl(ResponseQuery query) {
-            UrlQuery urlQuery = new UrlQuery();
-            // 升序排列
-            urlQuery.add(ResponseQuery.CODE, query.getCode());
-            urlQuery.add(ResponseQuery.DATA, query.getData());
-            urlQuery.add(ResponseQuery.MSG, query.getMsg());
-            return urlQuery.build(StandardCharsets.UTF_8);
         }
 
         private static String buildFullResponseUrl(ResponseQuery query) {
