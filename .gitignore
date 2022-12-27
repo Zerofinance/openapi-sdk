@@ -1,0 +1,15 @@
+.classpath
+.project
+.gradle
+.settings/
+.pmd
+.checkstyle
+target/
+.idea
+.springBeans
+.factorypath
+.apt_generated/
+bin/
+*.iml
+*.log
+*.gz
