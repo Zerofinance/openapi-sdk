@@ -1,4 +1,4 @@
-package com.zerofinance.xpay.openapi.sdk.utils;
+package com.zerofinance.xpay.openapi.sdk.v1.utils;
 
 import org.apache.commons.codec.binary.Base64;
 

@@ -1,7 +1,7 @@
-package com.zerofinance.xpay.openapi.sdk;
+package com.zerofinance.xpay.openapi.sdk.v1;
 
 
-import com.zerofinance.xpay.openapi.sdk.utils.RSAUtils;
+import com.zerofinance.xpay.openapi.sdk.v1.utils.RSAUtils;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 

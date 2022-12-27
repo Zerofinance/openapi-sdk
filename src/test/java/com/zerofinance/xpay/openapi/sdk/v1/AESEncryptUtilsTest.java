@@ -1,6 +1,6 @@
-package com.zerofinance.xpay.openapi.sdk;
+package com.zerofinance.xpay.openapi.sdk.v1;
 
-import com.zerofinance.xpay.openapi.sdk.utils.AESEncryptUtils;
+import com.zerofinance.xpay.openapi.sdk.v1.utils.AESEncryptUtils;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
