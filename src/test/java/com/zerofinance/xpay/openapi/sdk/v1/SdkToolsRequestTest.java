@@ -11,6 +11,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -36,11 +37,13 @@ public class SdkToolsRequestTest {
     public static void setUp() {
         rsaKey = SdkTools.genRSAKey();
         aesKey = "121212312312312312312312";
+        System.out.println("aesKey--->"+aesKey);
     }
 
     @Test
     public void t1SignRequest() {
         String privateKey = rsaKey.getPrivateKey();
+        System.out.println("privateKey--->"+privateKey);
         String bizContent = "{a:1,b:2,c:3}";
         RequestQuery query = RequestQuery.builder()
                 .merchantId("111222")
@@ -58,6 +61,7 @@ public class SdkToolsRequestTest {
     @Test
     public void t2VerifyRequest() {
         String publicKey = rsaKey.getPublicKey();
+        System.out.println("publicKey--->"+publicKey);
         UrlQuery parseQuery = new UrlQuery();
         parseQuery.parse(queryString, StandardCharsets.UTF_8);
         boolean verified = SdkTools.verifyRequest(queryString, publicKey);
@@ -70,5 +74,13 @@ public class SdkToolsRequestTest {
         RequestQuery query = SdkTools.getRequestQuery(queryString, aesKey);
         System.out.println("query--->"+query);
         Assert.assertNotNull(query);
+    }
+
+    @Test
+    public void test4UrlEncode() {
+        String bizContent = "ZzW1iG6apnMSMyn2KXXMOA==";
+        String encodeStr = URLEncoder.encode(bizContent, StandardCharsets.UTF_8);
+        System.out.println("encodeStr--->"+encodeStr);
+        Assert.assertNotNull(encodeStr);
     }
 }

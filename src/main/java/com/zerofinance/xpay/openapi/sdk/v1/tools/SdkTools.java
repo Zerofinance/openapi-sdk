@@ -10,6 +10,8 @@ import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
 import com.zerofinance.xpay.openapi.sdk.v1.utils.AESEncryptUtils;
 import com.zerofinance.xpay.openapi.sdk.v1.utils.RSAUtils;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -45,7 +47,7 @@ public final class SdkTools {
         String md5String = SdkHelper.md5Request(query);
         String sign = SdkHelper.sign(md5String, privateKey);
         query.setSign(sign);
-        String queryString = SdkHelper.buildFullRequestUrl(query);
+        String queryString = SdkHelper.buildRequestUrl(query);
         return queryString;
     }
 
@@ -113,7 +115,15 @@ public final class SdkTools {
         private static String md5Request(RequestQuery query) {
             String bizContent = query.getBizContent();
             Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be emtpy!");
-            String queryString = buildNeedSignRequestUrl(query);
+
+            UrlQuery urlQuery = new UrlQuery();
+            // 升序排列
+            urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
+            urlQuery.add(RequestQuery.MERCHANT_ID, query.getMerchantId());
+            urlQuery.add(RequestQuery.VERSION, query.getVersion());
+            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
+            String queryString = urlQuery.build(StandardCharsets.UTF_8);
+
             return SecureUtil.md5(queryString);
         }
 
@@ -132,34 +142,24 @@ public final class SdkTools {
             }
         }
 
-        private static String buildNeedSignRequestUrl(RequestQuery query) {
+        private static String buildRequestUrl(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
-            urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
-            urlQuery.add(RequestQuery.MERCHANT_ID, query.getMerchantId());
-            urlQuery.add(RequestQuery.VERSION, query.getVersion());
-            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
-            return urlQuery.build(StandardCharsets.UTF_8);
-        }
-
-        private static String buildFullRequestUrl(RequestQuery query) {
-            UrlQuery urlQuery = new UrlQuery();
-            // 升序排列
-            urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
-            urlQuery.add(RequestQuery.MERCHANT_ID, query.getMerchantId());
-            urlQuery.add(RequestQuery.SIGN, query.getSign());
+            urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode(query.getBizContent(), StandardCharsets.UTF_8));
+            urlQuery.add(RequestQuery.MERCHANT_ID, URLEncoder.encode(query.getMerchantId(), StandardCharsets.UTF_8));
+            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode(query.getSign(), StandardCharsets.UTF_8));
             urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
-            return urlQuery.build(StandardCharsets.UTF_8);
+            return urlQuery.build(StandardCharsets.UTF_8, true);
         }
 
         private static RequestQuery buildRequestQuery(String queryString) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
             RequestQuery query  = RequestQuery.builder()
-                    .bizContent(parseQuery.get(RequestQuery.BIZ_CONTENT).toString())
-                    .merchantId(parseQuery.get(RequestQuery.MERCHANT_ID).toString())
-                    .sign(parseQuery.get(RequestQuery.SIGN).toString())
+                    .bizContent(URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8))
+                    .merchantId(URLDecoder.decode(parseQuery.get(RequestQuery.MERCHANT_ID).toString(), StandardCharsets.UTF_8))
+                    .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
                     .timestamp(parseQuery.get(RequestQuery.TIMESTAMP).toString())
                     .version(parseQuery.get(RequestQuery.VERSION).toString())
                     .build();
