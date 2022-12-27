@@ -138,6 +138,7 @@ public final class SdkTools {
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
             urlQuery.add(RequestQuery.MERCHANT_ID, query.getMerchantId());
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
+            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
             return urlQuery.build(StandardCharsets.UTF_8);
         }
 
@@ -147,6 +148,7 @@ public final class SdkTools {
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
             urlQuery.add(RequestQuery.MERCHANT_ID, query.getMerchantId());
             urlQuery.add(RequestQuery.SIGN, query.getSign());
+            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
             return urlQuery.build(StandardCharsets.UTF_8);
         }
@@ -154,14 +156,13 @@ public final class SdkTools {
         private static RequestQuery buildRequestQuery(String queryString) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
-            RequestQuery query  = new RequestQuery();
-            query.setMerchantId(parseQuery.get(RequestQuery.MERCHANT_ID).toString());
-            query.setVersion(parseQuery.get(RequestQuery.VERSION).toString());
-            query.setBizContent(parseQuery.get(RequestQuery.BIZ_CONTENT).toString());
-            String sign = parseQuery.get(RequestQuery.SIGN).toString();
-            if(StrUtil.isNotBlank(sign)) {
-                query.setSign(sign);
-            }
+            RequestQuery query  = RequestQuery.builder()
+                    .bizContent(parseQuery.get(RequestQuery.BIZ_CONTENT).toString())
+                    .merchantId(parseQuery.get(RequestQuery.MERCHANT_ID).toString())
+                    .sign(parseQuery.get(RequestQuery.SIGN).toString())
+                    .timestamp(parseQuery.get(RequestQuery.TIMESTAMP).toString())
+                    .version(parseQuery.get(RequestQuery.VERSION).toString())
+                    .build();
             return query;
         }
 
@@ -187,14 +188,12 @@ public final class SdkTools {
         private static ResponseQuery buildResponseQuery(String queryString) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
-            ResponseQuery query  = new ResponseQuery();
-            query.setCode(Integer.parseInt(parseQuery.get(ResponseQuery.CODE).toString()));
-            query.setData(parseQuery.get(ResponseQuery.DATA).toString());
-            query.setMsg(parseQuery.get(ResponseQuery.MSG).toString());
-            String sign = parseQuery.get(ResponseQuery.SIGN).toString();
-            if(StrUtil.isNotBlank(sign)) {
-                query.setSign(sign);
-            }
+            ResponseQuery query  = ResponseQuery.builder()
+                    .code(Integer.parseInt(parseQuery.get(ResponseQuery.CODE).toString()))
+                    .data(parseQuery.get(ResponseQuery.DATA).toString())
+                    .msg(parseQuery.get(ResponseQuery.MSG).toString())
+                    .sign(parseQuery.get(ResponseQuery.SIGN).toString())
+                    .build();
             return query;
         }
     }

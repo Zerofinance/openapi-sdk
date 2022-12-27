@@ -1,5 +1,6 @@
 package com.zerofinance.xpay.openapi.sdk.v1;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.net.url.UrlQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
@@ -11,6 +12,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 /**
  * A Testcase for SdkTools.
@@ -40,10 +42,12 @@ public class SdkToolsRequestTest {
     public void t1SignRequest() {
         String privateKey = rsaKey.getPrivateKey();
         String bizContent = "{a:1,b:2,c:3}";
-        RequestQuery query = new RequestQuery();
-        query.setMerchantId("111222");
-        query.setVersion("1.0.0");
-        query.setBizContent(bizContent);
+        RequestQuery query = RequestQuery.builder()
+                .merchantId("111222")
+                .timestamp(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"))
+                .version("1.0.0")
+                .bizContent(bizContent)
+                .build();
         this.queryString = SdkTools.signRequest(query, privateKey, aesKey);
         System.out.println("queryString--->"+queryString);
         Assert.assertNotNull(queryString);
