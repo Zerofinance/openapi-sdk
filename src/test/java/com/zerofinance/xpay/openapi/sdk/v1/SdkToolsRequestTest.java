@@ -1,7 +1,7 @@
 package com.zerofinance.xpay.openapi.sdk.v1;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.net.url.UrlQuery;
+import cn.hutool.crypto.SecureUtil;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
 import com.zerofinance.xpay.openapi.sdk.v1.tools.SdkTools;
@@ -11,9 +11,8 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import java.net.URLEncoder;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 /**
  * A Testcase for SdkTools.
@@ -47,7 +46,7 @@ public class SdkToolsRequestTest {
         String bizContent = "{a:1,b:2,c:3}";
         RequestQuery query = RequestQuery.builder()
                 .merchantId("111222")
-                .timestamp(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"))
+//                .timestamp(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"))
                 .version("1.0.0")
                 .bizContent(bizContent)
                 .build();
@@ -78,9 +77,17 @@ public class SdkToolsRequestTest {
 
     @Test
     public void test4UrlEncode() {
-        String bizContent = "ZzW1iG6apnMSMyn2KXXMOA==";
-        String encodeStr = URLEncoder.encode(bizContent, StandardCharsets.UTF_8);
+        String bizContent = "ZzW1iG6apnMSMyn2KXXMOA%25253D%25253D";
+        String encodeStr = URLDecoder.decode(bizContent, StandardCharsets.UTF_8);
         System.out.println("encodeStr--->"+encodeStr);
         Assert.assertNotNull(encodeStr);
+    }
+
+    @Test
+    public void md5() {
+        String queryString = "bizContent=ZzW1iG6apnMSMyn2KXXMOA%253D%253D&merchantId=111222&version=1.0.0";
+        String md5 = SecureUtil.md5(queryString);
+        System.out.println("md5--->"+md5);
+        Assert.assertNotNull(md5);
     }
 }

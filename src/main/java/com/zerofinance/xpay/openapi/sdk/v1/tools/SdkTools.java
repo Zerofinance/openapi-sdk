@@ -121,7 +121,7 @@ public final class SdkTools {
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
             urlQuery.add(RequestQuery.MERCHANT_ID, query.getMerchantId());
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
-            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
+//            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
             String queryString = urlQuery.build(StandardCharsets.UTF_8);
 
             return SecureUtil.md5(queryString);
@@ -147,9 +147,9 @@ public final class SdkTools {
             // 升序排列
             urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode(query.getBizContent(), StandardCharsets.UTF_8));
             urlQuery.add(RequestQuery.MERCHANT_ID, URLEncoder.encode(query.getMerchantId(), StandardCharsets.UTF_8));
+//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
+            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode(query.getVersion(), StandardCharsets.UTF_8));
             urlQuery.add(RequestQuery.SIGN, URLEncoder.encode(query.getSign(), StandardCharsets.UTF_8));
-            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
-            urlQuery.add(RequestQuery.VERSION, query.getVersion());
             return urlQuery.build(StandardCharsets.UTF_8, true);
         }
 
@@ -159,9 +159,9 @@ public final class SdkTools {
             RequestQuery query  = RequestQuery.builder()
                     .bizContent(URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8))
                     .merchantId(URLDecoder.decode(parseQuery.get(RequestQuery.MERCHANT_ID).toString(), StandardCharsets.UTF_8))
+//                    .timestamp(URLDecoder.decode(parseQuery.get(RequestQuery.TIMESTAMP).toString(), StandardCharsets.UTF_8))
+                    .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
                     .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
-                    .timestamp(parseQuery.get(RequestQuery.TIMESTAMP).toString())
-                    .version(parseQuery.get(RequestQuery.VERSION).toString())
                     .build();
             return query;
         }

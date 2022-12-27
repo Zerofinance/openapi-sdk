@@ -22,7 +22,7 @@ public class RequestQuery {
 
     public final static String BIZ_CONTENT = "bizContent";
 
-    public final static String TIMESTAMP = "timestamp";
+//    public final static String TIMESTAMP = "timestamp";
 
     public final static String SIGN = "sign";
 
@@ -32,8 +32,8 @@ public class RequestQuery {
     @NonNull
     private String version;
 
-    @NonNull
-    private String timestamp;
+//    @NonNull
+//    private String timestamp;
 
     @NonNull
     @Setter
