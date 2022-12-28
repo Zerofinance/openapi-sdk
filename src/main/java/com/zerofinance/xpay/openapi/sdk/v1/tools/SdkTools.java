@@ -53,7 +53,6 @@ public final class SdkTools {
 
     public static boolean verifyRequest(String queryString, String publicKey) {
         try {
-            queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
             RequestQuery query  = SdkHelper.buildRequestQuery(queryString);
             String md5String = SdkHelper.md5Request(query);
             String sign = query.getSign();
@@ -65,7 +64,6 @@ public final class SdkTools {
     }
 
     public static RequestQuery getRequestQuery(String queryString, String aesKey) {
-        queryString = URLDecoder.decode(queryString, StandardCharsets.UTF_8);
         UrlQuery parseQuery = new UrlQuery();
         parseQuery.parse(queryString, StandardCharsets.UTF_8);
         RequestQuery query = SdkHelper.buildRequestQuery(queryString);
