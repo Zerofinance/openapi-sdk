@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.lang.Assert;
@@ -16,19 +34,26 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * A tools for openapi.
+ * A sdk tools for openapi.
  *
  * <p>
  * <a href="SdkTools.java"><i>View Source</i></a>
  *
  * @author Dave.zhao
- * Date: 12/27/2022 10:45 AM
+ * Date: 12/27/2022 10:40 AM
+ * @version 1.0
+ * @since 1.0
  */
 public final class SdkTools {
 
     private SdkTools() {}
 
 
+    /**
+     * Generates a pair of key for RSA2.
+     *
+     * @return RSAKey, including both privateKey and publicKey.
+     */
     public static RSAKey genRSAKey() {
         try {
             Map<String, Object> kyePair = RSAUtils.genKeyPair();
@@ -39,6 +64,14 @@ public final class SdkTools {
         }
     }
 
+    /**
+     * Generates a signature of a certain request.
+     *
+     * @param query The object of RequestQuery.
+     * @param privateKey Private key.
+     * @param aesKey Aes key.
+     * @return a signed string.
+     */
     public static String signRequest(RequestQuery query, String privateKey, String aesKey) {
         String bizContent = query.getBizContent();
         Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be emtpy!");
@@ -51,6 +84,13 @@ public final class SdkTools {
         return queryString;
     }
 
+    /**
+     * Verifies if the request is a legal url.
+     *
+     * @param queryString The string of request.
+     * @param publicKey Public key.
+     * @return verified?
+     */
     public static boolean verifyRequest(String queryString, String publicKey) {
         try {
             RequestQuery query  = SdkHelper.buildRequestQuery(queryString);
@@ -63,6 +103,13 @@ public final class SdkTools {
         }
     }
 
+    /**
+     * Gets the object of "RequestQuery" from a string request.
+     *
+     * @param queryString The string of request.
+     * @param aesKey Aes key.
+     * @return RequestQuery.
+     */
     public static RequestQuery getRequestQuery(String queryString, String aesKey) {
         UrlQuery parseQuery = new UrlQuery();
         parseQuery.parse(queryString, StandardCharsets.UTF_8);
@@ -73,6 +120,13 @@ public final class SdkTools {
         return query;
     }
 
+    /**
+     * Generates a signature of a certain response.
+     *
+     * @param query The object of ResponseQuery.
+     * @param privateKey Private key.
+     * @param aesKey Aes key.
+     */
     public static void signResponse(ResponseQuery query, String privateKey, String aesKey) {
         String data = query.getData();
         Assert.isTrue(StrUtil.isNotBlank(data), "data must not be emtpy!");
@@ -83,6 +137,15 @@ public final class SdkTools {
         query.setSign(sign);
     }
 
+    /**
+     * Verifies if the response is a legal url.
+     *
+     * @param encryptData The encrypted data.
+     * @param sign The signature of request url.
+     * @param publicKey Public key.
+     * @param aesKey Aes key.
+     * @return Verified?
+     */
     public static boolean verifyResponse(String encryptData, String sign, String publicKey, String aesKey) {
         try {
 //            String data = AESEncryptUtils.decrypt(dataEncrypt, aesKey);
@@ -94,6 +157,13 @@ public final class SdkTools {
         }
     }
 
+    /**
+     * Gets the object of "ResponseQuery" from the object of "ResponseQuery".
+     *
+     * @param query ResponseQuery.
+     * @param aesKey Aes key.
+     * @return ResponseQuery.
+     */
     public static ResponseQuery getResponseQuery(ResponseQuery query, String aesKey) {
         String aesEncrypt = query.getData();
         String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
@@ -101,16 +171,25 @@ public final class SdkTools {
         return query;
     }
 
+    /**
+     * A helper of SDK.
+     */
     static final class SdkHelper {
 
         private SdkHelper() {}
 
+        /**
+         * Md5 RequestQuery.
+         *
+         * @param query RequestQuery.
+         * @return a md5 string.
+         */
         private static String md5Request(RequestQuery query) {
             String bizContent = query.getBizContent();
             Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be emtpy!");
 
             UrlQuery urlQuery = new UrlQuery();
-            // 升序排列
+            // Ascending according to key:
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
             urlQuery.add(RequestQuery.MERCHANT_ID, query.getMerchantId());
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
@@ -120,6 +199,13 @@ public final class SdkTools {
             return SecureUtil.md5(queryString);
         }
 
+        /**
+         * Signs the content.
+         *
+         * @param content the business content.
+         * @param privateKey Private key.
+         * @return A signed string.
+         */
         private static String sign(String content, String privateKey) {
             try {
                 return RSAUtils.sign(content.getBytes(), privateKey);
@@ -128,6 +214,12 @@ public final class SdkTools {
             }
         }
 
+        /**
+         * Builds the request url.
+         *
+         * @param query RequestQuery.
+         * @return a request url.
+         */
         private static String buildRequestUrl(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
@@ -139,6 +231,12 @@ public final class SdkTools {
             return urlQuery.build(StandardCharsets.UTF_8, true);
         }
 
+        /**
+         * Builds the object of "RequestQuery".
+         *
+         * @param queryString The quest string.
+         * @return RequestQuery.
+         */
         private static RequestQuery buildRequestQuery(String queryString) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
@@ -152,7 +250,7 @@ public final class SdkTools {
             return query;
         }
 
-        private static String buildFullResponseUrl(ResponseQuery query) {
+        /*private static String buildFullResponseUrl(ResponseQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
             urlQuery.add(ResponseQuery.CODE, query.getCode());
@@ -160,9 +258,9 @@ public final class SdkTools {
             urlQuery.add(ResponseQuery.MSG, query.getMsg());
             urlQuery.add(ResponseQuery.SIGN, query.getSign());
             return urlQuery.build(StandardCharsets.UTF_8);
-        }
+        }*/
 
-        private static ResponseQuery buildResponseQuery(String queryString) {
+        /*private static ResponseQuery buildResponseQuery(String queryString) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
             ResponseQuery query  = ResponseQuery.builder()
@@ -172,6 +270,6 @@ public final class SdkTools {
                     .sign(parseQuery.get(ResponseQuery.SIGN).toString())
                     .build();
             return query;
-        }
+        }*/
     }
 }

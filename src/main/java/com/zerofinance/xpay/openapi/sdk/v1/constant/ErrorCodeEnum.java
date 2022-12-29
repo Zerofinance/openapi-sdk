@@ -21,12 +21,13 @@ package com.zerofinance.xpay.openapi.sdk.v1.constant;
 import lombok.Getter;
 
 /**
- * 公共错误枚举对象
+ * A global error code list for openapi-sdk.
  * 
  * <p>
  * <a href="ErrorCodeEnum.java"><i>View Source</i></a>
- * 
- * @author zhaoxunyong@qq.com
+ *
+ * @author Dave.zhao
+ * Date: 12/27/2022 10:40 AM
  * @version 1.0
  * @since 1.0
  */
@@ -34,57 +35,57 @@ import lombok.Getter;
 public enum ErrorCodeEnum {
     
     /**
-     * 成功
+     * Successful
      */
     OK(200, "successful"),
     
     /**
-     * 业务处理异常
+     * Business Exception
      */
     BUSINESS_ERROR(900, "Business Exception"),
     
     /**
-     * 参数传值异常
+     * Parameter Exception
      */
     PARAMETER_ERROR(901, "Parameter Exception"),
     
     /**
-     * 数据存储异常
+     * Data Access Exception
      */
     DATA_ACCESS_ERROR(902, "Data Access Exception"),
     
     /**
-     * 未知异常
+     * Unknown Exception
      */
     UNKNOWN_ERROR(903, "Unknown Exception"),
     
     /**
-     * 找不到数据
+     * NotFound Exception
      */
     NOT_FOUND_ERROR(904, "NotFound Exception"),
     
     /**
-     * 簽名校驗異常
+     * Signature Exception
      */
     SIGN_ERROR(905, "Signature Exception"),
     
     /**
-     * session已失效
+     * Session Expired Exception
      */
     SESSION_ERROR(906, "Session Expired Exception"),
     
     /**
-     * 无效的版本
+     * Version InValid Exception
      */
     VERSION_INVALID_ERROR(907, "Version InValid Exception"),
     
     /**
-     * Remote Exception
+     * Remote Invoke Exception
      */
     REMOTE_ERROR(908, "Remote Invoke Exception"),
     
     /**
-     * 无权限走流程
+     * No Access Exception
      */
     NO_ACCESS_PROCESS(909, "No Access Exception");
     
