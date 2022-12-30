@@ -33,6 +33,8 @@ import lombok.*;
 @Builder
 @Getter
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public final class ResponseQuery {
 
 
