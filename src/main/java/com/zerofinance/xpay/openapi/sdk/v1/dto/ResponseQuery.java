@@ -67,12 +67,14 @@ public final class ResponseQuery {
      * Response code.
      */
     @NonNull
+    @Setter
     private int code;
 
     /**
      * Response message.
      */
     @NonNull
+    @Setter
     private String msg;
 
     /**
