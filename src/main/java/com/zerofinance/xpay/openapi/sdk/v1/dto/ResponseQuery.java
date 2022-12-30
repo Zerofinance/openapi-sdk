@@ -59,6 +59,11 @@ public final class ResponseQuery {
     public final static String DATA = "data";
 
     /**
+     * The constant of "data".
+     */
+    public final static String VOID_DATA = "{}";
+
+    /**
      * Response code.
      */
     @NonNull
@@ -89,7 +94,7 @@ public final class ResponseQuery {
      * @return ResponseQuery
      */
     public static ResponseQuery buildSuccessVoid() {
-        return buildSuccess("{}");
+        return buildSuccess(VOID_DATA);
     }
 
     /**
@@ -132,6 +137,6 @@ public final class ResponseQuery {
      * @return ResponseQuery
      */
     public static ResponseQuery buildFailed(int code, String msg) {
-        return buildFailed(code, msg, "{}");
+        return buildFailed(code, msg, VOID_DATA);
     }
 }

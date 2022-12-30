@@ -20,8 +20,14 @@ package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.net.url.UrlQuery;
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.Method;
+import cn.hutool.json.JSONUtil;
+import com.zerofinance.xpay.openapi.sdk.v1.constant.ErrorCodeEnum;
+import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestExecutor;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
@@ -32,6 +38,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A sdk tools for openapi.
@@ -62,6 +69,53 @@ public final class SdkTools {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    /**
+     * Executes the request and get data from Response.
+     *
+     * @param requestExecutor RequestExecutor
+     * @return data
+     * @param <T> Optional
+     */
+
+    public static <T> void execute(RequestExecutor requestExecutor) {
+        execute(requestExecutor, null);
+    }
+
+    /**
+     * Executes the request and get data from Response.
+     *
+     * @param requestExecutor RequestExecutor
+     * @param clazz Converts to this class.
+     * @return data
+     * @param <T> Optional
+     */
+    public static <T> Optional<T> execute(RequestExecutor requestExecutor, Class<T> clazz) {
+        String requestUrl = requestExecutor.getRequestUrl();
+        int connectionTimeout = requestExecutor.getConnectionTimeout();
+        int readTimeout = requestExecutor.getReadTimeout();
+        String publicKey = requestExecutor.getPublicKey();
+        String aesKey = requestExecutor.getAesKey();
+        String responseBody = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
+                .setConnectionTimeout(connectionTimeout)
+                .setReadTimeout(readTimeout)
+                .method(Method.POST).execute().body();
+        ResponseQuery openApiResult = JSONUtil.toBean(responseBody, ResponseQuery.class);
+        int code = openApiResult.getCode();
+        Assert.isTrue(code == ErrorCodeEnum.OK.getCode(),"An error is occurred from calling remote service："+ responseBody);
+        // 验签
+        boolean verifySignResult = verifyResponse(openApiResult, publicKey);
+        Assert.isTrue(verifySignResult,"调用openApi接口结果返回验签失败!");
+
+        ResponseQuery responseQuery = SdkTools.getResponseQuery(openApiResult, aesKey);
+        String data = responseQuery.getData();
+        Optional<T> result = Optional.empty();
+        if (StrUtil.isNotBlank(data) && !ResponseQuery.VOID_DATA.equals(data) && clazz != null){
+            result = Optional.of(JSONUtil.toBean(data, clazz));
+        }
+        return result;
     }
 
     /**
