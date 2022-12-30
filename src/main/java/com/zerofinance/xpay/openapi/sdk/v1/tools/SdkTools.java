@@ -140,15 +140,14 @@ public final class SdkTools {
     /**
      * Verifies if the response is a legal url.
      *
-     * @param encryptData The encrypted data.
-     * @param sign The signature of request url.
+     * @param query ResponseQuery.
      * @param publicKey Public key.
-     * @param aesKey Aes key.
      * @return Verified?
      */
-    public static boolean verifyResponse(String encryptData, String sign, String publicKey, String aesKey) {
+    public static boolean verifyResponse(ResponseQuery query, String publicKey) {
         try {
-//            String data = AESEncryptUtils.decrypt(dataEncrypt, aesKey);
+            String encryptData = query.getData();
+            String sign = query.getSign();
             String md5String = SecureUtil.md5(encryptData);
             boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
             return verified;

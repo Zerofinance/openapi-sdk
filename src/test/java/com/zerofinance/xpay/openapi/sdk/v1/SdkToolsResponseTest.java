@@ -68,7 +68,7 @@ public class SdkToolsResponseTest {
     @Test
     public void t2VerifyResponse() {
         String publicKey = rsaKey.getPublicKey();
-        boolean verified = SdkTools.verifyResponse(query.getData(), query.getSign(), publicKey, aesKey);
+        boolean verified = SdkTools.verifyResponse(query, publicKey);
         System.out.println("verified--->"+verified);
         Assert.assertTrue(verified);
     }
