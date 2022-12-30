@@ -67,47 +67,47 @@ public final class RSAUtils {
     public static final String PRIVATE_KEY = "RSAPrivateKey";
     
     private RSAUtils() {}
-    
+
     /**
      * <P>
-     * 公钥解密
+     * 私钥解密
      * </p>
      *
      * @param encryptedData 已加密数据
-     * @param publicKey 私钥(BASE64编码)
+     * @param privateKey 私钥(BASE64编码)
      * @return byte
      * @throws Exception Exception
      */
     @SuppressWarnings({ "PMD.ShortVariable", "PMD.AvoidDuplicateLiterals" })
-    public static byte[] decrypt(byte[] encryptedData, String publicKey) throws Exception {
-        byte[] keyBytes = Base64.decode(publicKey);
-        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
-        Key publicKey1K = keyFactory.generatePublic(x509KeySpec);
-        
-        Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, publicKey1K);
-        return cipher.doFinal(Base64.decode(encryptedData));
-    }
-    
-    /**
-     * <p>
-     * 公钥解密
-     * </p>
-     *
-     * @param data 源数据
-     * @param privateKey 公钥(BASE64编码)
-     * @return byte
-     * @throws Exception Exception
-     */
-    public static byte[] encrypt(byte[] data, String privateKey) throws Exception {
+    public static byte[] decrypt(byte[] encryptedData, String privateKey) throws Exception {
         byte[] keyBytes = Base64.decode(privateKey);
         PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
-        PrivateKey privateK = keyFactory.generatePrivate(pkcs8KeySpec);
-        
+        Key privateK = keyFactory.generatePrivate(pkcs8KeySpec);
+
         Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, privateK);
+        cipher.init(Cipher.DECRYPT_MODE, privateK);
+        return cipher.doFinal(Base64.decode(encryptedData));
+    }
+
+    /**
+     * <p>
+     * 公钥加密
+     * </p>
+     *
+     * @param data 源数据
+     * @param publicKey 公钥(BASE64编码)
+     * @return byte
+     * @throws Exception Exception
+     */
+    public static byte[] encrypt(byte[] data, String publicKey) throws Exception {
+        byte[] keyBytes = Base64.decode(publicKey);
+        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+        Key publicK = keyFactory.generatePublic(x509KeySpec);
+
+        Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, publicK);
         return Base64.encode(cipher.doFinal(data)).getBytes();
     }
     
