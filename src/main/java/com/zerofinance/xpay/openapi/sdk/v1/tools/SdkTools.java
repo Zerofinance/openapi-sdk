@@ -107,7 +107,7 @@ public final class SdkTools {
         Assert.isTrue(code == ErrorCodeEnum.OK.getCode(),"An error is occurred from calling remote service："+ responseBody);
         // 验签
         boolean verifySignResult = verifyResponse(openApiResult, publicKey);
-        Assert.isTrue(verifySignResult,"调用openApi接口结果返回验签失败!");
+        Assert.isTrue(verifySignResult,"Verifying signature encountered an error!");
 
         ResponseQuery responseQuery = SdkTools.getResponseQuery(openApiResult, aesKey);
         String data = responseQuery.getData();
