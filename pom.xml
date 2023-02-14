@@ -8,7 +8,16 @@
 	<packaging>jar</packaging>
 
 	<name>openapi-sdk</name>
+	<description>The open api sdk of Zerofinance</description>
 	<url>http://maven.apache.org</url>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<properties>
 		<java.version>11</java.version>
@@ -191,7 +200,7 @@
 		</profile>
 	</profiles>
 
-	<distributionManagement>
+<!--	<distributionManagement>
 		<snapshotRepository>
 			<id>snapshots</id>
 			<name>Snapshots repository</name>
@@ -203,5 +212,5 @@
 			<name>Releases repository</name>
 			<url>http://nexus.zerofinance.net/content/repositories/releases</url>
 		</repository>
-	</distributionManagement>
+	</distributionManagement>-->
 </project>
