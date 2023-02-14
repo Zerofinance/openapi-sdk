@@ -55,7 +55,6 @@ public class AESEncryptUtils {
      * @param content    加密的字符串
      * @param encryptKey key值
      * @return 加密后的内容
-     * @throws Exception 异常
      */
     public static String encrypt(String content, String encryptKey){
         try {
@@ -78,7 +77,6 @@ public class AESEncryptUtils {
      * @param encryptStr 解密的字符串
      * @param decryptKey 解密的key值
      * @return 解密后的内容
-     * @throws Exception 异常
      */
     public static String decrypt(String encryptStr, String decryptKey) {
         try {

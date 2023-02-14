@@ -76,7 +76,6 @@ public final class SdkTools {
      * Executes the request and get data from Response.
      *
      * @param requestExecutor RequestExecutor
-     * @return data
      * @param <T> Optional
      */
 

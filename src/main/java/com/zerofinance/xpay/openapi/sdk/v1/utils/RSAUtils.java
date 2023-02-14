@@ -116,7 +116,7 @@ public final class RSAUtils {
      * 生成密钥对(公钥和私钥)
      * </p>
      *
-     * @return Map<String, Object>
+     * @return Map
      * @throws Exception Exception
      */
     public static Map<String, Object> genKeyPair() throws Exception {

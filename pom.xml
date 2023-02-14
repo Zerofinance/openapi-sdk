@@ -19,6 +19,26 @@
 		</license>
 	</licenses>
 
+
+	<developers>
+		<developer>
+			<id>xpc</id>
+			<name>xpc</name>
+			<email>dave.zhao@zerofinance.com</email>
+			<roles>
+				<role>Project Manager</role>
+				<role>Architect</role>
+			</roles>
+			<timezone>+8</timezone>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>https://github.com/Zerofinance/openapi-sdk.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:Zerofinance/openapi-sdk.git</developerConnection>
+		<url>https://github.com/Zerofinance/openapi-sdk</url>
+	</scm>
+
 	<properties>
 		<java.version>11</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
@@ -198,19 +218,88 @@
 				<skip.unit.tests>true</skip.unit.tests>
 			</properties>
 		</profile>
+
+		<profile>
+			<!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
+			<id>ossrh</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<!--发布到中央SNAPSHOT仓库插件-->
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.7</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>ossrh</serverId>
+							<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
+					</plugin>
+
+					<!--生成源码插件-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.2.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--生成API文档插件-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--gpg插件-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+			</build>
+
+			<distributionManagement>
+				<snapshotRepository>
+					<!--注意,此id必须与setting.xml中指定的一致-->
+					<id>ossrh</id>
+					<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+				</snapshotRepository>
+				<repository>
+					<id>ossrh</id>
+					<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+				</repository>
+			</distributionManagement>
+		</profile>
 	</profiles>
-
-<!--	<distributionManagement>
-		<snapshotRepository>
-			<id>snapshots</id>
-			<name>Snapshots repository</name>
-			<url>http://nexus.zerofinance.net/content/repositories/snapshots</url>
-		</snapshotRepository>
-
-		<repository>
-			<id>releases</id>
-			<name>Releases repository</name>
-			<url>http://nexus.zerofinance.net/content/repositories/releases</url>
-		</repository>
-	</distributionManagement>-->
 </project>
