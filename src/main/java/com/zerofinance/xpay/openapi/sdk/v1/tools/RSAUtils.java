@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.zerofinance.xpay.openapi.sdk.v1.utils;
+package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.codec.Base64;
 
@@ -41,7 +41,7 @@ import java.util.Map;
  * @since 1.0
  */
 @SuppressWarnings("PMD.SignatureDeclareThrowsException")
-public final class RSAUtils {
+final class RSAUtils {
     
     /**
      * 加密算法RSA

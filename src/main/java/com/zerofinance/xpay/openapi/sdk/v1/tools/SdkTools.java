@@ -31,8 +31,6 @@ import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestExecutor;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
-import com.zerofinance.xpay.openapi.sdk.v1.utils.AESEncryptUtils;
-import com.zerofinance.xpay.openapi.sdk.v1.utils.RSAUtils;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;

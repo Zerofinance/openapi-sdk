@@ -19,11 +19,9 @@
 package com.zerofinance.xpay.openapi.sdk.v1;
 
 import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.crypto.SecureUtil;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
 import com.zerofinance.xpay.openapi.sdk.v1.tools.SdkTools;
-import com.zerofinance.xpay.openapi.sdk.v1.utils.AESEncryptUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -102,22 +100,5 @@ public class SdkToolsRequestTest {
         String encodeStr = URLDecoder.decode(bizContent, StandardCharsets.UTF_8);
         System.out.println("encodeStr--->"+encodeStr);
         Assert.assertNotNull(encodeStr);
-    }
-
-    @Test
-    public void md5() {
-        String queryString = "bizContent=ZzW1iG6apnMSMyn2KXXMOA%253D%253D&merchantId=111222&version=1.0.0";
-        String md5 = SecureUtil.md5(queryString);
-        System.out.println("md5--->"+md5);
-        Assert.assertNotNull(md5);
-    }
-
-    @Test
-    public void decrypt() {
-        String dataEncrypt = "F5SDo/KrXmYi/foz67/gKz5+TN6+LYs3irnrH+BUTU004frGGKMms0PPF/4WnhwT";
-        String data = AESEncryptUtils.decrypt(dataEncrypt, aesKey);
-        System.out.println("data--->"+data);
-        Assert.assertNotNull(data);
-
     }
 }
