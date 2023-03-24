@@ -37,9 +37,9 @@ import lombok.*;
 public class RequestQuery {
 
     /**
-     * The constant of "merchantId".
+     * The constant of "outletId".
      */
-    public final static String MERCHANT_ID = "merchantId";
+    public final static String OUTLET_ID = "outletId";
 
     /**
      * The constant of "version".
@@ -60,10 +60,10 @@ public class RequestQuery {
     public final static String SIGN = "sign";
 
     /**
-     * Mechant id.
+     * outletId.
      */
     @NonNull
-    private String merchantId;
+    private String outletId;
 
     /**
      * Version.

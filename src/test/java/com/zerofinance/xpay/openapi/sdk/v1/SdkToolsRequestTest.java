@@ -64,11 +64,11 @@ public class SdkToolsRequestTest {
         System.out.println("privateKey--->"+privateKey);
         String bizContent = "{a:1,b:2,c:3}";
         RequestQuery query = RequestQuery.builder()
-                .merchantId("111222")
+                                         .outletId("111222")
 //                .timestamp(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"))
-                .version("1.0.0")
-                .bizContent(bizContent)
-                .build();
+                                         .version("1.0.0")
+                                         .bizContent(bizContent)
+                                         .build();
         this.queryString = SdkTools.signRequest(query, privateKey, aesKey);
         System.out.println("queryString--->"+queryString);
         Assert.assertNotNull(queryString);
