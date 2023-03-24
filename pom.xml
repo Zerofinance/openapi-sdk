@@ -4,7 +4,7 @@
 
 	<groupId>com.zerofinance</groupId>
 	<artifactId>openapi-sdk</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>openapi-sdk</name>
