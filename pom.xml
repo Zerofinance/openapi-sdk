@@ -221,10 +221,28 @@
 
 		<profile>
 			<!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
-			<id>ossrh</id>
+			<id>zerofinance-nexus</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>snapshots</id>
+					<name>Snapshots repository</name>
+					<url>http://nexus.zerofinance.net/content/repositories/snapshots</url>
+				</snapshotRepository>
+
+				<repository>
+					<id>releases</id>
+					<name>Releases repository</name>
+					<url>http://nexus.zerofinance.net/content/repositories/releases</url>
+				</repository>
+			</distributionManagement>
+		</profile>
+
+		<profile>
+			<!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
+			<id>ossrh</id>
 			<build>
 				<!--发布到中央SNAPSHOT仓库插件-->
 				<plugins>
