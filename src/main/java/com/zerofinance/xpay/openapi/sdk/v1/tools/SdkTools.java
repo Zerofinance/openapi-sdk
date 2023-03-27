@@ -27,6 +27,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.Method;
 import cn.hutool.json.JSONUtil;
 import com.zerofinance.xpay.openapi.sdk.v1.constant.ErrorCodeEnum;
+import com.zerofinance.xpay.openapi.sdk.v1.dto.CallBackExecutor;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestExecutor;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
@@ -87,7 +88,7 @@ public final class SdkTools {
      * @param requestExecutor RequestExecutor
      * @param clazz Converts to this class.
      * @return data
-     * @param <T> Optional
+     * @param <T> Result
      */
     public static <T> Optional<T> execute(RequestExecutor requestExecutor, Class<T> clazz) {
         String requestUrl = requestExecutor.getRequestUrl();
@@ -113,6 +114,25 @@ public final class SdkTools {
             result = Optional.of(JSONUtil.toBean(data, clazz));
         }
         return result;
+    }
+
+    /**
+     * Calling back the outlet's url.
+     *
+     * @param callBackExecutor CallBackExecutor
+     * @return Result
+     */
+    public static String callback(CallBackExecutor callBackExecutor) {
+        String callbackUrl = callBackExecutor.getCallbackUrl();
+        int connectionTimeout = callBackExecutor.getConnectionTimeout();
+        int readTimeout = callBackExecutor.getReadTimeout();
+        String privateKey = callBackExecutor.getPrivateKey();
+        String sign = signUrl(callbackUrl, privateKey);
+        return HttpRequest.of(callbackUrl, CharsetUtil.CHARSET_UTF_8)
+                .setConnectionTimeout(connectionTimeout)
+                .setReadTimeout(readTimeout)
+                .header("sign", sign)
+                .method(Method.POST).execute().body();
     }
 
     /**
