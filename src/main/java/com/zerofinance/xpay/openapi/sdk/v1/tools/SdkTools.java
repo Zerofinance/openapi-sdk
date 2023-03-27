@@ -116,6 +116,33 @@ public final class SdkTools {
     }
 
     /**
+     * Generates a signature of a certain context.
+     *
+     * @param context context
+     * @param privateKey privateKey
+     * @return sign string.
+     */
+    public static String signUrl(String context, String privateKey) {
+        return SdkHelper.sign(context, privateKey);
+    }
+
+    /**
+     * Generates a signature of a certain context.
+     *
+     * @param context context
+     * @param sign sign string
+     * @param publicKey publicKey
+     * @return if verified?
+     */
+    public static boolean verifyUrl(String context, String sign, String publicKey) {
+        try {
+            return RSAUtils.verify(context.getBytes(), publicKey, sign);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Generates a signature of a certain request.
      *
      * @param query The object of RequestQuery.
