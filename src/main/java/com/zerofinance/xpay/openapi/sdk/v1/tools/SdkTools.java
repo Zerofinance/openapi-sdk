@@ -172,7 +172,7 @@ public final class SdkTools {
      */
     public static String signRequest(RequestQuery query, String privateKey, String aesKey) {
         String bizContent = query.getBizContent();
-        Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be emtpy!");
+        Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be empty!");
         String encryptBiZContent = AESEncryptUtils.encrypt(bizContent, aesKey);
         query.setBizContent(encryptBiZContent);
         String md5String = SdkHelper.md5Request(query);
@@ -227,7 +227,7 @@ public final class SdkTools {
      */
     public static void signResponse(ResponseQuery query, String privateKey, String aesKey) {
         String data = query.getData();
-        Assert.isTrue(StrUtil.isNotBlank(data), "data must not be emtpy!");
+        Assert.isTrue(StrUtil.isNotBlank(data), "data must not be empty!");
         String encryptData = AESEncryptUtils.encrypt(data, aesKey);
         query.setData(encryptData);
         String md5String = SecureUtil.md5(encryptData);
@@ -283,7 +283,7 @@ public final class SdkTools {
          */
         private static String md5Request(RequestQuery query) {
             String bizContent = query.getBizContent();
-            Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be emtpy!");
+            Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be empty!");
 
             UrlQuery urlQuery = new UrlQuery();
             // Ascending according to key:
