@@ -27,7 +27,7 @@ function updateDependenciesVersion() {
 
   dependencyProjectVersion=${project}-version
   #echo $dependencyProjectVersion
-  projects="xpay-gateway xpay-external-gateway account-server configuration-server merchant-server operation-server payment-server external-server openapi-sdk zerofinance-commons"
+  projects="xpay-gateway xpay-external-gateway account-server configuration-server merchant-server  payment-server  openapi-sdk zerofinance-commons"
 
   cd ..
   for project in $projects
