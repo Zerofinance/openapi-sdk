@@ -220,7 +220,7 @@
 		</profile>
 
 		<profile>
-			<!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
+			<!--注意,此id必须与setting.xml中指定的一致-->
 			<id>zerofinance-nexus</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -241,10 +241,10 @@
 		</profile>
 
 		<profile>
-			<!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
-			<id>ossrh</id>
+			<!--注意,此id必须与setting.xml中指定的一致 -->
+			<id>mavencenter-snapshots</id>
 			<build>
-				<!--发布到中央SNAPSHOT仓库插件-->
+				<!--发布到中央SNAPSHOT仓库插件 -->
 				<plugins>
 					<plugin>
 						<groupId>org.sonatype.plugins</groupId>
@@ -252,7 +252,7 @@
 						<version>1.6.7</version>
 						<extensions>true</extensions>
 						<configuration>
-							<serverId>ossrh</serverId>
+							<serverId>mavencenter-snapshots</serverId>
 							<nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
 							<autoReleaseAfterClose>true</autoReleaseAfterClose>
 						</configuration>
@@ -273,7 +273,7 @@
 						</executions>
 					</plugin>
 
-					<!--生成API文档插件-->
+					<!--生成API文档插件
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
@@ -283,6 +283,84 @@
 								<id>attach-javadocs</id>
 								<goals>
 									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>-->
+
+					<!--gpg插件-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+			<distributionManagement>
+				<snapshotRepository>
+					<!--注意,此id必须与setting.xml中指定的一致-->
+					<id>mavencenter-snapshots</id>
+					<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+
+		<profile>
+			<!--注意,此id必须与setting.xml中指定的一致 -->
+			<id>mavencenter-release</id>
+			<build>
+				<!--发布到中央release仓库插件-->
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-release-plugin</artifactId>
+						<version>2.5.3</version>
+						<configuration>
+							<autoVersionSubmodules>true</autoVersionSubmodules>
+							<useReleaseProfile>false</useReleaseProfile>
+							<releaseProfiles>mavencenter-release</releaseProfiles>
+							<goals>deploy</goals>
+						</configuration>
+					</plugin>
+
+					<!--生成API文档插件 -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
+						<configuration>
+							<source>8</source>
+						</configuration>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--生成源码插件-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.2.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
 								</goals>
 							</execution>
 						</executions>
@@ -308,13 +386,8 @@
 			</build>
 
 			<distributionManagement>
-				<snapshotRepository>
-					<!--注意,此id必须与setting.xml中指定的一致-->
-					<id>ossrh</id>
-					<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-				</snapshotRepository>
 				<repository>
-					<id>ossrh</id>
+					<id>mavencenter-release</id>
 					<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 				</repository>
 			</distributionManagement>
