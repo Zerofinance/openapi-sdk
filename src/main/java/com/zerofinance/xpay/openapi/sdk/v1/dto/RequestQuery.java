@@ -42,6 +42,16 @@ public class RequestQuery {
     public final static String OUTLET_ID = "outletId";
 
     /**
+     * The constant of "vendorId".
+     */
+    public final static String VENDOR_ID = "vendorId";
+
+    /**
+     * The constant of "vendorCall".
+     */
+    public final static String VENDOR_CALL = "vendorCall" ;
+
+    /**
      * The constant of "version".
      */
     public final static String VERSION = "version";
@@ -64,6 +74,10 @@ public class RequestQuery {
      */
     @NonNull
     private String outletId;
+
+    private String vendorId;
+
+    private Boolean vnedorCall;
 
     /**
      * Version.
