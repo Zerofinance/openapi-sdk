@@ -22,6 +22,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpRequest;
@@ -290,8 +291,10 @@ public final class SdkTools {
             // Ascending according to key:
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
             urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
-            urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
-            urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
+            if (StrUtil.isNotBlank(query.getVendorId())) {
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
+            }
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
 //            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
             String queryString = urlQuery.build(StandardCharsets.UTF_8);
@@ -325,8 +328,10 @@ public final class SdkTools {
             // 升序排列
             urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode(query.getBizContent(), StandardCharsets.UTF_8));
             urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId(), StandardCharsets.UTF_8));
-            urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
-            urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
+            if (StrUtil.isNotBlank(query.getVendorId())) {
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
+            }
 //            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
             urlQuery.add(RequestQuery.VERSION, URLEncoder.encode(query.getVersion(), StandardCharsets.UTF_8));
             urlQuery.add(RequestQuery.SIGN, URLEncoder.encode(query.getSign(), StandardCharsets.UTF_8));
@@ -345,13 +350,14 @@ public final class SdkTools {
             RequestQuery query  = RequestQuery.builder()
                                               .bizContent(URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8))
                                               .outletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8))
-                                              .vendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8))
-                                              .vnedorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(),
-                                                                                                  StandardCharsets.UTF_8)))
 //                    .timestamp(URLDecoder.decode(parseQuery.get(RequestQuery.TIMESTAMP).toString(), StandardCharsets.UTF_8))
                                               .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
                                               .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
                                               .build();
+            if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_ID))) {
+                query.setVendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8));
+                query.setVnedorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
+            }
             return query;
         }
 

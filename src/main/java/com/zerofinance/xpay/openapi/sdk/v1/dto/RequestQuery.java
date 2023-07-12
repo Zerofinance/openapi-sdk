@@ -75,8 +75,10 @@ public class RequestQuery {
     @NonNull
     private String outletId;
 
+    @Setter
     private String vendorId;
 
+    @Setter
     private Boolean vnedorCall;
 
     /**
