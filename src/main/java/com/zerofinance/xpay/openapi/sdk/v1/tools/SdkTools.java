@@ -293,6 +293,8 @@ public final class SdkTools {
             urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
+            }
+            if (ObjectUtil.isNotNull(query.getVnedorCall())) {
                 urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
             }
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
@@ -330,6 +332,8 @@ public final class SdkTools {
             urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId(), StandardCharsets.UTF_8));
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
+            }
+            if (ObjectUtil.isNotNull(query.getVnedorCall())) {
                 urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
             }
 //            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
@@ -356,6 +360,9 @@ public final class SdkTools {
                                               .build();
             if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_ID))) {
                 query.setVendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8));
+                query.setVnedorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
+            }
+            if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_CALL))) {
                 query.setVnedorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
             }
             return query;
