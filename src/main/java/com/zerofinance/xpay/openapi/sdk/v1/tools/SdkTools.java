@@ -294,8 +294,8 @@ public final class SdkTools {
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
             }
-            if (ObjectUtil.isNotNull(query.getVnedorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
+            if (ObjectUtil.isNotNull(query.getVendorCall())) {
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVendorCall()), StandardCharsets.UTF_8));
             }
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
 //            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
@@ -333,8 +333,8 @@ public final class SdkTools {
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId(), StandardCharsets.UTF_8));
             }
-            if (ObjectUtil.isNotNull(query.getVnedorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVnedorCall()), StandardCharsets.UTF_8));
+            if (ObjectUtil.isNotNull(query.getVendorCall())) {
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVendorCall()), StandardCharsets.UTF_8));
             }
 //            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
             urlQuery.add(RequestQuery.VERSION, URLEncoder.encode(query.getVersion(), StandardCharsets.UTF_8));
@@ -360,10 +360,10 @@ public final class SdkTools {
                                               .build();
             if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_ID))) {
                 query.setVendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8));
-                query.setVnedorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
+                query.setVendorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
             }
             if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_CALL))) {
-                query.setVnedorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
+                query.setVendorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
             }
             return query;
         }

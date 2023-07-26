@@ -79,7 +79,7 @@ public class RequestQuery {
     private String vendorId;
 
     @Setter
-    private Boolean vnedorCall;
+    private Boolean vendorCall;
 
     /**
      * Version.
