@@ -40,7 +40,7 @@
 	</scm>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>1.8</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<file_encoding>UTF-8</file_encoding>
