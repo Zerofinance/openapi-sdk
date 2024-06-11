@@ -19,6 +19,7 @@
 package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.codec.PercentCodec;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.*;
 import cn.hutool.crypto.SecureUtil;
@@ -33,6 +34,8 @@ import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
 
 import cn.hutool.core.net.URLDecoder;
+
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
@@ -288,10 +291,10 @@ public final class SdkTools {
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
             urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
             if (StrUtil.isNotBlank(query.getVendorId())) {
-                urlQuery.add(RequestQuery.VENDOR_ID, URLUtil.encode((query.getVendorId())));
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
             }
             if (ObjectUtil.isNotNull(query.getVendorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLUtil.encode((String.valueOf(query.getVendorCall()))));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode((String.valueOf(query.getVendorCall()))));
             }
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
 //            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
@@ -324,17 +327,17 @@ public final class SdkTools {
         private static String buildRequestUrl(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
-            urlQuery.add(RequestQuery.BIZ_CONTENT, URLUtil.encode((query.getBizContent())));
-            urlQuery.add(RequestQuery.OUTLET_ID, URLUtil.encode((query.getOutletId())));
+            urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode((query.getBizContent())));
+            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode((query.getOutletId())));
             if (StrUtil.isNotBlank(query.getVendorId())) {
-                urlQuery.add(RequestQuery.VENDOR_ID, URLUtil.encode((query.getVendorId())));
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
             }
             if (ObjectUtil.isNotNull(query.getVendorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLUtil.encode((String.valueOf(query.getVendorCall()))));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode((String.valueOf(query.getVendorCall()))));
             }
-//            urlQuery.add(RequestQuery.TIMESTAMP, URLUtil.encode((query.getTimestamp())));
-            urlQuery.add(RequestQuery.VERSION, URLUtil.encode((query.getVersion())));
-            urlQuery.add(RequestQuery.SIGN, URLUtil.encode((query.getSign())));
+//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncodeUtil.encode((query.getTimestamp())));
+            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode((query.getVersion())));
+            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode((query.getSign())));
             return urlQuery.build(StandardCharsets.UTF_8, true);
         }
 
