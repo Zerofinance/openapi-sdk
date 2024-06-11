@@ -19,7 +19,6 @@
 package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.codec.PercentCodec;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.*;
 import cn.hutool.crypto.SecureUtil;
