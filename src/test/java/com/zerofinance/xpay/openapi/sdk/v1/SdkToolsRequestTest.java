@@ -28,7 +28,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import java.net.URLDecoder;
+import cn.hutool.core.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 /**

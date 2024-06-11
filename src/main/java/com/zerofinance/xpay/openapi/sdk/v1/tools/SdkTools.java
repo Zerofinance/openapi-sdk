@@ -33,6 +33,8 @@ import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
 
 import cn.hutool.core.net.URLDecoder;
+
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
@@ -62,7 +64,7 @@ public final class SdkTools {
         try {
             Map<String, Object> kyePair = RSAUtils.genKeyPair();
             return RSAKey.builder().privateKey(RSAUtils.getPrivateKey(kyePair))
-                    .publicKey(RSAUtils.getPublicKey(kyePair)).build();
+                         .publicKey(RSAUtils.getPublicKey(kyePair)).build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -95,9 +97,9 @@ public final class SdkTools {
         String publicKey = requestExecutor.getPublicKey();
         String aesKey = requestExecutor.getAesKey();
         String responseBody = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
-                .setConnectionTimeout(connectionTimeout)
-                .setReadTimeout(readTimeout)
-                .method(Method.POST).execute().body();
+                                         .setConnectionTimeout(connectionTimeout)
+                                         .setReadTimeout(readTimeout)
+                                         .method(Method.POST).execute().body();
         ResponseQuery openApiResult = JSONUtil.toBean(responseBody, ResponseQuery.class);
         int code = openApiResult.getCode();
         Assert.isTrue(code == ErrorCodeEnum.OK.getCode(),"An error is occurred from calling remote service："+ responseBody);
@@ -127,10 +129,10 @@ public final class SdkTools {
         String privateKey = callBackExecutor.getPrivateKey();
         String sign = signUrl(callbackUrl, privateKey);
         return HttpRequest.of(callbackUrl, CharsetUtil.CHARSET_UTF_8)
-                .setConnectionTimeout(connectionTimeout)
-                .setReadTimeout(readTimeout)
-                .header("sign", sign)
-                .method(Method.POST).execute().body();
+                          .setConnectionTimeout(connectionTimeout)
+                          .setReadTimeout(readTimeout)
+                          .header("sign", sign)
+                          .method(Method.POST).execute().body();
     }
 
     /**
@@ -288,10 +290,10 @@ public final class SdkTools {
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
             urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
             if (StrUtil.isNotBlank(query.getVendorId())) {
-                urlQuery.add(RequestQuery.VENDOR_ID, URLUtil.encode((query.getVendorId())));
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
             }
             if (ObjectUtil.isNotNull(query.getVendorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLUtil.encode((String.valueOf(query.getVendorCall()))));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode((String.valueOf(query.getVendorCall()))));
             }
             urlQuery.add(RequestQuery.VERSION, query.getVersion());
 //            urlQuery.add(RequestQuery.TIMESTAMP, query.getTimestamp());
@@ -324,17 +326,17 @@ public final class SdkTools {
         private static String buildRequestUrl(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
-            urlQuery.add(RequestQuery.BIZ_CONTENT, URLUtil.encode((query.getBizContent())));
-            urlQuery.add(RequestQuery.OUTLET_ID, URLUtil.encode((query.getOutletId())));
+            urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode((query.getBizContent())));
+            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode((query.getOutletId())));
             if (StrUtil.isNotBlank(query.getVendorId())) {
-                urlQuery.add(RequestQuery.VENDOR_ID, URLUtil.encode((query.getVendorId())));
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
             }
             if (ObjectUtil.isNotNull(query.getVendorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLUtil.encode((String.valueOf(query.getVendorCall()))));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode((String.valueOf(query.getVendorCall()))));
             }
-//            urlQuery.add(RequestQuery.TIMESTAMP, URLUtil.encode((query.getTimestamp())));
-            urlQuery.add(RequestQuery.VERSION, URLUtil.encode((query.getVersion())));
-            urlQuery.add(RequestQuery.SIGN, URLUtil.encode((query.getSign())));
+//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncodeUtil.encode((query.getTimestamp())));
+            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode((query.getVersion())));
+            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode((query.getSign())));
             return urlQuery.build(StandardCharsets.UTF_8, true);
         }
 
