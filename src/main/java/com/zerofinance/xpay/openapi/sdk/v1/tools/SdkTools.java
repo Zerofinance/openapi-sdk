@@ -23,6 +23,7 @@ import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.*;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
 import cn.hutool.json.JSONUtil;
 import com.zerofinance.xpay.openapi.sdk.v1.constant.ErrorCodeEnum;
@@ -96,10 +97,14 @@ public final class SdkTools {
         int readTimeout = requestExecutor.getReadTimeout();
         String publicKey = requestExecutor.getPublicKey();
         String aesKey = requestExecutor.getAesKey();
-        String responseBody = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
-                                         .setConnectionTimeout(connectionTimeout)
-                                         .setReadTimeout(readTimeout)
-                                         .method(Method.POST).execute().body();
+        HttpRequest httpRequest = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
+                .setConnectionTimeout(connectionTimeout)
+                .setReadTimeout(readTimeout)
+                .method(Method.POST);
+        String responseBody;
+        try (HttpResponse execute = httpRequest.execute()) {
+            responseBody = execute.body();
+        }
         ResponseQuery openApiResult = JSONUtil.toBean(responseBody, ResponseQuery.class);
         int code = openApiResult.getCode();
         Assert.isTrue(code == ErrorCodeEnum.OK.getCode(),"An error is occurred from calling remote service："+ responseBody);
@@ -128,11 +133,18 @@ public final class SdkTools {
         int readTimeout = callBackExecutor.getReadTimeout();
         String privateKey = callBackExecutor.getPrivateKey();
         String sign = signUrl(callbackUrl, privateKey);
-        return HttpRequest.of(callbackUrl, CharsetUtil.CHARSET_UTF_8)
-                          .setConnectionTimeout(connectionTimeout)
-                          .setReadTimeout(readTimeout)
-                          .header("sign", sign)
-                          .method(Method.POST).execute().body();
+        HttpRequest httpRequest = HttpRequest.of(callbackUrl, CharsetUtil.CHARSET_UTF_8)
+                .setConnectionTimeout(connectionTimeout)
+                .setReadTimeout(readTimeout)
+                .header("sign", sign)
+                .method(Method.POST);
+        try (HttpResponse execute = httpRequest.execute()) {
+            int status = execute.getStatus();
+            if (status != 200) {
+                throw new RuntimeException("response status code " + status + " is not indicate success");
+            }
+            return execute.body();
+        }
     }
 
     /**
