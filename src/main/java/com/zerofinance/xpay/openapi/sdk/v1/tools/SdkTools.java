@@ -102,7 +102,7 @@ public final class SdkTools {
                 .setConnectionTimeout(connectionTimeout)
                 .setReadTimeout(readTimeout)
                 .method(Method.POST);
-        if(body != null && !body.isEmpty()){
+        if(StrUtil.isNotBlank(body)){
             httpRequest.body(body);
         }
         String responseBody;
@@ -207,7 +207,26 @@ public final class SdkTools {
      */
     public static boolean verifyRequest(String queryString, String publicKey) {
         try {
-            RequestQuery query  = SdkHelper.buildRequestQuery(queryString);
+            RequestQuery query  = SdkHelper.buildRequestQuery(queryString,null);
+            String md5String = SdkHelper.md5Request(query);
+            String sign = query.getSign();
+            boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
+            return verified;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Verifies if the request is a legal url.
+     *
+     * @param queryString The string of request.
+     * @param publicKey Public key.
+     * @return verified?
+     */
+    public static boolean verifyRequest(String queryString, String publicKey,String body) {
+        try {
+            RequestQuery query  = SdkHelper.buildRequestQuery(queryString,body);
             String md5String = SdkHelper.md5Request(query);
             String sign = query.getSign();
             boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
@@ -227,7 +246,23 @@ public final class SdkTools {
     public static RequestQuery getRequestQuery(String queryString, String aesKey) {
         UrlQuery parseQuery = new UrlQuery();
         parseQuery.parse(queryString, StandardCharsets.UTF_8);
-        RequestQuery query = SdkHelper.buildRequestQuery(queryString);
+        RequestQuery query = SdkHelper.buildRequestQuery(queryString,null);
+        String aesEncrypt = query.getBizContent();
+        String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
+        query.setBizContent(aesDecrypt);
+        return query;
+    }
+    /**
+     * Gets the object of "RequestQuery" from a string request.
+     *
+     * @param queryString The string of request.
+     * @param aesKey Aes key.
+     * @return RequestQuery.
+     */
+    public static RequestQuery getRequestQuery(String queryString, String aesKey,String body) {
+        UrlQuery parseQuery = new UrlQuery();
+        parseQuery.parse(queryString, StandardCharsets.UTF_8);
+        RequestQuery query = SdkHelper.buildRequestQuery(queryString,body);
         String aesEncrypt = query.getBizContent();
         String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
         query.setBizContent(aesDecrypt);
@@ -362,16 +397,20 @@ public final class SdkTools {
          * @param queryString The quest string.
          * @return RequestQuery.
          */
-        private static RequestQuery buildRequestQuery(String queryString) {
+        private static RequestQuery buildRequestQuery(String queryString,String body) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
             RequestQuery query  = RequestQuery.builder()
-                                              .bizContent(URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8))
                                               .outletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8))
 //                    .timestamp(URLDecoder.decode(parseQuery.get(RequestQuery.TIMESTAMP).toString(), StandardCharsets.UTF_8))
                                               .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
                                               .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
                                               .build();
+            if (StrUtil.isNotBlank(parseQuery.get(RequestQuery.BIZ_CONTENT))){
+                query.setBizContent(URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8));
+            }else if(StrUtil.isNotBlank(body)){
+                query.setBizContent(body);
+            }
             if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_ID))) {
                 query.setVendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8));
                 query.setVendorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
