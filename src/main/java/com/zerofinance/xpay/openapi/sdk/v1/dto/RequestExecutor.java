@@ -52,4 +52,7 @@ public class RequestExecutor {
 
     @NonNull
     private String aesKey;
+
+
+    private String body;
 }

@@ -97,10 +97,14 @@ public final class SdkTools {
         int readTimeout = requestExecutor.getReadTimeout();
         String publicKey = requestExecutor.getPublicKey();
         String aesKey = requestExecutor.getAesKey();
+        String body = requestExecutor.getBody();
         HttpRequest httpRequest = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
                 .setConnectionTimeout(connectionTimeout)
                 .setReadTimeout(readTimeout)
                 .method(Method.POST);
+        if(body != null && !body.isEmpty()){
+            httpRequest.body(body);
+        }
         String responseBody;
         try (HttpResponse execute = httpRequest.execute()) {
             responseBody = execute.body();
@@ -330,7 +334,7 @@ public final class SdkTools {
         }
 
         /**
-         * Builds the request url.
+         * Builds the request url, bizContext will be included in request url.
          *
          * @param query RequestQuery.
          * @return a request url.
@@ -338,17 +342,17 @@ public final class SdkTools {
         private static String buildRequestUrl(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
-            urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode((query.getBizContent())));
-            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode((query.getOutletId())));
+            urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode(query.getBizContent()));
+            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
             if (StrUtil.isNotBlank(query.getVendorId())) {
-                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId()));
             }
             if (ObjectUtil.isNotNull(query.getVendorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode((String.valueOf(query.getVendorCall()))));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVendorCall())));
             }
-//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncodeUtil.encode((query.getTimestamp())));
-            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode((query.getVersion())));
-            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode((query.getSign())));
+//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
+            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode(query.getVersion()));
+            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode(query.getSign()));
             return urlQuery.build(StandardCharsets.UTF_8, true);
         }
 
@@ -377,7 +381,56 @@ public final class SdkTools {
             }
             return query;
         }
+        /**
+         * Generates a signature of a certain request, bizContext will be passed in body.
+         *
+         * @param query The object of RequestQuery.
+         * @param privateKey Private key.
+         * @param aesKey Aes key.
+         * @param bizContextInBody If bizContext should be passed in body.
+         * @return a signed string.
+         */
+        public static String signRequest(RequestQuery query, String privateKey, String aesKey, boolean bizContextInBody) {
+            String bizContent = query.getBizContent();
+            Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be empty!");
+            String encryptBiZContent = AESEncryptUtils.encrypt(bizContent, aesKey);
+            query.setBizContent(encryptBiZContent);
+            String md5String = SdkHelper.md5Request(query);
+            String sign = SdkHelper.sign(md5String, privateKey);
+            query.setSign(sign);
+            String queryString = "";
+            if(bizContextInBody) {
+                queryString = SdkHelper.buildRequestUrlWithoutBizContext(query);
+            } else {
+                queryString = SdkHelper.buildRequestUrl(query);
+            }
+            return queryString;
+        }
 
+
+
+
+        /**
+         * Builds the request url without bizContext, bizContext will be passed in body.
+         *
+         * @param query RequestQuery.
+         * @return a request url.
+         */
+        private static String buildRequestUrlWithoutBizContext(RequestQuery query) {
+            UrlQuery urlQuery = new UrlQuery();
+            // 升序排列
+            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
+            if (StrUtil.isNotBlank(query.getVendorId())) {
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId()));
+            }
+            if (ObjectUtil.isNotNull(query.getVendorCall())) {
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVendorCall())));
+            }
+//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
+            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode(query.getVersion()));
+            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode(query.getSign()));
+            return urlQuery.build(StandardCharsets.UTF_8, true);
+        }
         /*private static String buildFullResponseUrl(ResponseQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
