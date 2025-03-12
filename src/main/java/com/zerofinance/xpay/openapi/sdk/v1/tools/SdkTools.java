@@ -19,6 +19,7 @@
 package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.lang.Validator;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.*;
 import cn.hutool.crypto.SecureUtil;
@@ -53,7 +54,8 @@ import java.util.Optional;
  */
 public final class SdkTools {
 
-    private SdkTools() {}
+    private SdkTools() {
+    }
 
 
     /**
@@ -65,7 +67,7 @@ public final class SdkTools {
         try {
             Map<String, Object> kyePair = RSAUtils.genKeyPair();
             return RSAKey.builder().privateKey(RSAUtils.getPrivateKey(kyePair))
-                         .publicKey(RSAUtils.getPublicKey(kyePair)).build();
+                    .publicKey(RSAUtils.getPublicKey(kyePair)).build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -76,7 +78,7 @@ public final class SdkTools {
      * Executes the request and get data from Response.
      *
      * @param requestExecutor RequestExecutor
-     * @param <T> Optional
+     * @param <T>             Optional
      */
 
     public static <T> void execute(RequestExecutor requestExecutor) {
@@ -87,9 +89,9 @@ public final class SdkTools {
      * Executes the request and get data from Response.
      *
      * @param requestExecutor RequestExecutor
-     * @param clazz Converts to this class.
+     * @param clazz           Converts to this class.
+     * @param <T>             Result
      * @return data
-     * @param <T> Result
      */
     public static <T> Optional<T> execute(RequestExecutor requestExecutor, Class<T> clazz) {
         String requestUrl = requestExecutor.getRequestUrl();
@@ -102,7 +104,7 @@ public final class SdkTools {
                 .setConnectionTimeout(connectionTimeout)
                 .setReadTimeout(readTimeout)
                 .method(Method.POST);
-        if(StrUtil.isNotBlank(body)){
+        if (StrUtil.isNotBlank(body)) {
             httpRequest.body(body);
         }
         String responseBody;
@@ -111,15 +113,15 @@ public final class SdkTools {
         }
         ResponseQuery openApiResult = JSONUtil.toBean(responseBody, ResponseQuery.class);
         int code = openApiResult.getCode();
-        Assert.isTrue(code == ErrorCodeEnum.OK.getCode(),"An error is occurred from calling remote service："+ responseBody);
+        Assert.isTrue(code == ErrorCodeEnum.OK.getCode(), "An error is occurred from calling remote service：" + responseBody);
         // 验签
         boolean verifySignResult = verifyResponse(openApiResult, publicKey);
-        Assert.isTrue(verifySignResult,"Verifying signature encountered an error!");
+        Assert.isTrue(verifySignResult, "Verifying signature encountered an error!");
 
         ResponseQuery responseQuery = SdkTools.getResponseQuery(openApiResult, aesKey);
         String data = responseQuery.getData();
         Optional<T> result = Optional.empty();
-        if (StrUtil.isNotBlank(data) && !ResponseQuery.VOID_DATA.equals(data) && clazz != null){
+        if (StrUtil.isNotBlank(data) && !ResponseQuery.VOID_DATA.equals(data) && clazz != null) {
             result = Optional.of(JSONUtil.toBean(data, clazz));
         }
         return result;
@@ -154,7 +156,7 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain context.
      *
-     * @param context context
+     * @param context    context
      * @param privateKey privateKey
      * @return sign string.
      */
@@ -165,8 +167,8 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain context.
      *
-     * @param context context
-     * @param sign sign string
+     * @param context   context
+     * @param sign      sign string
      * @param publicKey publicKey
      * @return if verified?
      */
@@ -181,9 +183,9 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain request.
      *
-     * @param query The object of RequestQuery.
+     * @param query      The object of RequestQuery.
      * @param privateKey Private key.
-     * @param aesKey Aes key.
+     * @param aesKey     Aes key.
      * @return a signed string.
      */
     public static String signRequest(RequestQuery query, String privateKey, String aesKey) {
@@ -202,12 +204,12 @@ public final class SdkTools {
      * Verifies if the request is a legal url.
      *
      * @param queryString The string of request.
-     * @param publicKey Public key.
+     * @param publicKey   Public key.
      * @return verified?
      */
     public static boolean verifyRequest(String queryString, String publicKey) {
         try {
-            RequestQuery query  = SdkHelper.buildRequestQuery(queryString,null);
+            RequestQuery query = SdkHelper.buildRequestQuery(queryString, null);
             String md5String = SdkHelper.md5Request(query);
             String sign = query.getSign();
             boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
@@ -221,12 +223,12 @@ public final class SdkTools {
      * Verifies if the request is a legal url.
      *
      * @param queryString The string of request.
-     * @param publicKey Public key.
+     * @param publicKey   Public key.
      * @return verified?
      */
-    public static boolean verifyRequest(String queryString, String publicKey,String body) {
+    public static boolean verifyRequest(String queryString, String publicKey, String body) {
         try {
-            RequestQuery query  = SdkHelper.buildRequestQuery(queryString,body);
+            RequestQuery query = SdkHelper.buildRequestQuery(queryString, body);
             String md5String = SdkHelper.md5Request(query);
             String sign = query.getSign();
             boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
@@ -240,29 +242,30 @@ public final class SdkTools {
      * Gets the object of "RequestQuery" from a string request.
      *
      * @param queryString The string of request.
-     * @param aesKey Aes key.
+     * @param aesKey      Aes key.
      * @return RequestQuery.
      */
     public static RequestQuery getRequestQuery(String queryString, String aesKey) {
         UrlQuery parseQuery = new UrlQuery();
         parseQuery.parse(queryString, StandardCharsets.UTF_8);
-        RequestQuery query = SdkHelper.buildRequestQuery(queryString,null);
+        RequestQuery query = SdkHelper.buildRequestQuery(queryString, null);
         String aesEncrypt = query.getBizContent();
         String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
         query.setBizContent(aesDecrypt);
         return query;
     }
+
     /**
      * Gets the object of "RequestQuery" from a string request.
      *
      * @param queryString The string of request.
-     * @param aesKey Aes key.
+     * @param aesKey      Aes key.
      * @return RequestQuery.
      */
-    public static RequestQuery getRequestQuery(String queryString, String aesKey,String body) {
+    public static RequestQuery getRequestQuery(String queryString, String aesKey, String body) {
         UrlQuery parseQuery = new UrlQuery();
         parseQuery.parse(queryString, StandardCharsets.UTF_8);
-        RequestQuery query = SdkHelper.buildRequestQuery(queryString,body);
+        RequestQuery query = SdkHelper.buildRequestQuery(queryString, body);
         String aesEncrypt = query.getBizContent();
         String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
         query.setBizContent(aesDecrypt);
@@ -272,9 +275,9 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain response.
      *
-     * @param query The object of ResponseQuery.
+     * @param query      The object of ResponseQuery.
      * @param privateKey Private key.
-     * @param aesKey Aes key.
+     * @param aesKey     Aes key.
      */
     public static void signResponse(ResponseQuery query, String privateKey, String aesKey) {
         String data = query.getData();
@@ -289,7 +292,7 @@ public final class SdkTools {
     /**
      * Verifies if the response is a legal url.
      *
-     * @param query ResponseQuery.
+     * @param query     ResponseQuery.
      * @param publicKey Public key.
      * @return Verified?
      */
@@ -308,7 +311,7 @@ public final class SdkTools {
     /**
      * Gets the object of "ResponseQuery" from the object of "ResponseQuery".
      *
-     * @param query ResponseQuery.
+     * @param query  ResponseQuery.
      * @param aesKey Aes key.
      * @return ResponseQuery.
      */
@@ -324,7 +327,8 @@ public final class SdkTools {
      */
     static final class SdkHelper {
 
-        private SdkHelper() {}
+        private SdkHelper() {
+        }
 
         /**
          * Md5 RequestQuery.
@@ -356,7 +360,7 @@ public final class SdkTools {
         /**
          * Signs the content.
          *
-         * @param content the business content.
+         * @param content    the business content.
          * @param privateKey Private key.
          * @return A signed string.
          */
@@ -397,20 +401,23 @@ public final class SdkTools {
          * @param queryString The quest string.
          * @return RequestQuery.
          */
-        private static RequestQuery buildRequestQuery(String queryString,String body) {
+        private static RequestQuery buildRequestQuery(String queryString, String body) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
-            RequestQuery query  = RequestQuery.builder()
-                                              .outletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8))
-//                    .timestamp(URLDecoder.decode(parseQuery.get(RequestQuery.TIMESTAMP).toString(), StandardCharsets.UTF_8))
-                                              .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
-                                              .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
-                                              .build();
-            if (StrUtil.isNotBlank(parseQuery.get(RequestQuery.BIZ_CONTENT))){
-                query.setBizContent(URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8));
-            }else if(StrUtil.isNotBlank(body)){
-                query.setBizContent(body);
+            String bizContent = null;
+            if (StrUtil.isNotBlank(parseQuery.get(RequestQuery.BIZ_CONTENT))) {
+                bizContent = URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8);
+            } else if (StrUtil.isNotBlank(body)) {
+                bizContent = body;
             }
+            Validator.validateTrue(bizContent != null, "bizContent cannot be null");
+            RequestQuery query = RequestQuery.builder()
+                    .outletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8))
+                    .bizContent(bizContent)
+//                    .timestamp(URLDecoder.decode(parseQuery.get(RequestQuery.TIMESTAMP).toString(), StandardCharsets.UTF_8))
+                    .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
+                    .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
+                    .build();
             if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_ID))) {
                 query.setVendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8));
                 query.setVendorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
@@ -420,12 +427,13 @@ public final class SdkTools {
             }
             return query;
         }
+
         /**
          * Generates a signature of a certain request, bizContext will be passed in body.
          *
-         * @param query The object of RequestQuery.
-         * @param privateKey Private key.
-         * @param aesKey Aes key.
+         * @param query            The object of RequestQuery.
+         * @param privateKey       Private key.
+         * @param aesKey           Aes key.
          * @param bizContextInBody If bizContext should be passed in body.
          * @return a signed string.
          */
@@ -438,15 +446,13 @@ public final class SdkTools {
             String sign = SdkHelper.sign(md5String, privateKey);
             query.setSign(sign);
             String queryString = "";
-            if(bizContextInBody) {
+            if (bizContextInBody) {
                 queryString = SdkHelper.buildRequestUrlWithoutBizContext(query);
             } else {
                 queryString = SdkHelper.buildRequestUrl(query);
             }
             return queryString;
         }
-
-
 
 
         /**
