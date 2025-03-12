@@ -405,12 +405,17 @@ public final class SdkTools {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
             String bizContent = null;
+            String bizContentFromBody = null;
+            String bizContentFromQuery = null;
             if (StrUtil.isNotBlank(parseQuery.get(RequestQuery.BIZ_CONTENT))) {
-                bizContent = URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8);
-            } else if (StrUtil.isNotBlank(body)) {
-                bizContent = body;
+                bizContentFromQuery = URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8);
             }
-            Validator.validateTrue(bizContent != null, "bizContent cannot be null");
+            if (StrUtil.isNotBlank(body)) {
+                bizContentFromBody = body;
+            }
+            Validator.validateTrue(!(bizContentFromQuery != null && bizContentFromBody != null), "both of bizContentFromQuery and bizContentFromBody cannot be empty");
+            bizContent = bizContentFromQuery != null ? bizContentFromQuery : bizContentFromBody;
+            Validator.validateTrue(bizContent != null, "bizContent cannot be empty");
             RequestQuery query = RequestQuery.builder()
                     .outletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8))
                     .bizContent(bizContent)
