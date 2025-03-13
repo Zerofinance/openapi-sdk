@@ -20,21 +20,20 @@ package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.lang.Validator;
+import cn.hutool.core.net.URLDecoder;
 import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.core.util.*;
+import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
 import cn.hutool.json.JSONUtil;
 import com.zerofinance.xpay.openapi.sdk.v1.constant.ErrorCodeEnum;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.CallBackExecutor;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestExecutor;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
+import com.zerofinance.xpay.openapi.sdk.v1.dto.*;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
-
-import cn.hutool.core.net.URLDecoder;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -128,6 +127,46 @@ public final class SdkTools {
     }
 
     /**
+     * Upload file and get data from Response.
+     *
+     * @param uploadExecutor UploadExecutor
+     * @param clazz          Converts to this class.
+     * @param <T>            Result
+     * @return data
+     */
+    public static <T> Optional<T> upload(UploadExecutor uploadExecutor, Class<T> clazz) {
+        String requestUrl = uploadExecutor.getRequestUrl();
+        int connectionTimeout = uploadExecutor.getConnectionTimeout();
+        int readTimeout = uploadExecutor.getReadTimeout();
+        String publicKey = uploadExecutor.getPublicKey();
+        String aesKey = uploadExecutor.getAesKey();
+        HttpRequest httpRequest = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
+                .setConnectionTimeout(connectionTimeout)
+                .setReadTimeout(readTimeout)
+                .form("file", uploadExecutor.getFile())
+                .method(Method.POST);
+        String responseBody;
+        try (HttpResponse execute = httpRequest.execute()) {
+            responseBody = execute.body();
+        }
+        ResponseQuery openApiResult = JSONUtil.toBean(responseBody, ResponseQuery.class);
+        int code = openApiResult.getCode();
+        Assert.isTrue(code == ErrorCodeEnum.OK.getCode(), "An error is occurred from calling remote service：" + responseBody);
+        // 验签
+        boolean verifySignResult = verifyResponse(openApiResult, publicKey);
+        Assert.isTrue(verifySignResult, "Verifying signature encountered an error!");
+
+        ResponseQuery responseQuery = SdkTools.getResponseQuery(openApiResult, aesKey);
+        String data = responseQuery.getData();
+        Optional<T> result = Optional.empty();
+        if (StrUtil.isNotBlank(data) && !ResponseQuery.VOID_DATA.equals(data) && clazz != null) {
+            result = Optional.of(JSONUtil.toBean(data, clazz));
+        }
+        return result;
+    }
+
+
+    /**
      * Calling back the outlet's url.
      *
      * @param callBackExecutor CallBackExecutor
@@ -140,7 +179,7 @@ public final class SdkTools {
         String privateKey = callBackExecutor.getPrivateKey();
         String body = callBackExecutor.getBody();
         String sign = "";
-        if(StrUtil.isNotBlank(body)) {
+        if (StrUtil.isNotBlank(body)) {
             sign = signUrlAndBody(callbackUrl, body, privateKey);
         } else {
             sign = signUrl(callbackUrl, privateKey);
@@ -176,7 +215,7 @@ public final class SdkTools {
     /**
      * Generates a signature of url and body.
      *
-     * @param url    context
+     * @param url        context
      * @param privateKey privateKey
      * @return sign string.
      */
@@ -188,9 +227,9 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain context.
      *
-     * @param url   url
-     * @param body   body
-     * @param sign      sign string
+     * @param url               url
+     * @param body              body
+     * @param sign              sign string
      * @param platformPublicKey platform publicKey
      * @return if verified?
      */
@@ -202,6 +241,7 @@ public final class SdkTools {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * Generates a signature of a certain context.
      *
@@ -359,6 +399,7 @@ public final class SdkTools {
         query.setData(aesDecrypt);
         return query;
     }
+
     /**
      * Generates a signature of a certain request, bizContext will be passed in body.
      *
@@ -384,6 +425,7 @@ public final class SdkTools {
         }
         return queryString;
     }
+
     /**
      * A helper of SDK.
      */
@@ -405,7 +447,7 @@ public final class SdkTools {
             UrlQuery urlQuery = new UrlQuery();
             // Ascending according to key:
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
-            if(StrUtil.isNotBlank((query.getOutletId()))){
+            if (StrUtil.isNotBlank((query.getOutletId()))) {
                 urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
             }
             if (StrUtil.isNotBlank(query.getVendorId())) {
@@ -446,7 +488,7 @@ public final class SdkTools {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
             urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode(query.getBizContent()));
-            if(StrUtil.isNotBlank(query.getOutletId())){
+            if (StrUtil.isNotBlank(query.getOutletId())) {
                 urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
             }
             if (StrUtil.isNotBlank(query.getVendorId())) {
@@ -500,8 +542,6 @@ public final class SdkTools {
         }
 
 
-
-
         /**
          * Builds the request url without bizContext, bizContext will be passed in body.
          *
@@ -511,7 +551,7 @@ public final class SdkTools {
         private static String buildRequestUrlWithoutBizContext(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
-            if(StrUtil.isNotBlank(query.getOutletId())){
+            if (StrUtil.isNotBlank(query.getOutletId())) {
                 urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
             }
             if (StrUtil.isNotBlank(query.getVendorId())) {

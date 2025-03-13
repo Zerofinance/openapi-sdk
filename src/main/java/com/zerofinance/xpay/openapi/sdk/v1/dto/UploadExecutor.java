@@ -24,6 +24,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
+import java.io.File;
+
 /**
  * A Executor Of Request.
  *
@@ -38,7 +40,7 @@ import lombok.ToString;
 @Builder
 @Getter
 @ToString
-public class RequestExecutor {
+public class UploadExecutor {
 
     @NonNull
     private String requestUrl;
@@ -53,5 +55,7 @@ public class RequestExecutor {
     @NonNull
     private String aesKey;
 
-    private String body;
+    @NonNull
+    private File file;
+
 }
