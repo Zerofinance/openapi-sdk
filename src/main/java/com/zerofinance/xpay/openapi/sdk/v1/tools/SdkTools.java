@@ -405,7 +405,9 @@ public final class SdkTools {
             UrlQuery urlQuery = new UrlQuery();
             // Ascending according to key:
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
-            urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
+            if(StrUtil.isNotBlank((query.getOutletId()))){
+                urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
+            }
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
             }
@@ -444,7 +446,9 @@ public final class SdkTools {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
             urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode(query.getBizContent()));
-            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
+            if(StrUtil.isNotBlank(query.getOutletId())){
+                urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
+            }
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId()));
             }
@@ -507,7 +511,9 @@ public final class SdkTools {
         private static String buildRequestUrlWithoutBizContext(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
-            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
+            if(StrUtil.isNotBlank(query.getOutletId())){
+                urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
+            }
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId()));
             }
