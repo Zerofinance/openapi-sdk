@@ -483,12 +483,14 @@ public final class SdkTools {
             bizContent = bizContentFromQuery != null ? bizContentFromQuery : bizContentFromBody;
             Validator.validateTrue(bizContent != null, "bizContent cannot be empty");
             RequestQuery query = RequestQuery.builder()
-                    .outletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8))
                     .bizContent(bizContent)
 //                    .timestamp(URLDecoder.decode(parseQuery.get(RequestQuery.TIMESTAMP).toString(), StandardCharsets.UTF_8))
                     .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
                     .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
                     .build();
+            if(ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.OUTLET_ID))){
+                query.setOutletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8));
+            }
             if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_ID))) {
                 query.setVendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8));
                 query.setVendorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
