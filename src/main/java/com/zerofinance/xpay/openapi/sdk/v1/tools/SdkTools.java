@@ -191,13 +191,13 @@ public final class SdkTools {
      * @param url   url
      * @param body   body
      * @param sign      sign string
-     * @param publicKey publicKey
+     * @param platformPublicKey platform publicKey
      * @return if verified?
      */
-    public static boolean verifyUrlAndBody(String url, String body, String sign, String publicKey) {
+    public static boolean verifyUrlAndBody(String url, String body, String sign, String platformPublicKey) {
         String context = SecureUtil.md5(url + body);
         try {
-            return RSAUtils.verify(context.getBytes(), publicKey, sign);
+            return RSAUtils.verify(context.getBytes(), platformPublicKey, sign);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
