@@ -359,7 +359,31 @@ public final class SdkTools {
         query.setData(aesDecrypt);
         return query;
     }
-
+    /**
+     * Generates a signature of a certain request, bizContext will be passed in body.
+     *
+     * @param query            The object of RequestQuery.
+     * @param privateKey       Private key.
+     * @param aesKey           Aes key.
+     * @param bizContextInBody If bizContext should be passed in body.
+     * @return a signed string.
+     */
+    public static String signRequest(RequestQuery query, String privateKey, String aesKey, boolean bizContextInBody) {
+        String bizContent = query.getBizContent();
+        Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be empty!");
+        String encryptBiZContent = AESEncryptUtils.encrypt(bizContent, aesKey);
+        query.setBizContent(encryptBiZContent);
+        String md5String = SdkHelper.md5Request(query);
+        String sign = SdkHelper.sign(md5String, privateKey);
+        query.setSign(sign);
+        String queryString = "";
+        if (bizContextInBody) {
+            queryString = SdkHelper.buildRequestUrlWithoutBizContext(query);
+        } else {
+            queryString = SdkHelper.buildRequestUrl(query);
+        }
+        return queryString;
+    }
     /**
      * A helper of SDK.
      */
@@ -471,31 +495,7 @@ public final class SdkTools {
             return query;
         }
 
-        /**
-         * Generates a signature of a certain request, bizContext will be passed in body.
-         *
-         * @param query            The object of RequestQuery.
-         * @param privateKey       Private key.
-         * @param aesKey           Aes key.
-         * @param bizContextInBody If bizContext should be passed in body.
-         * @return a signed string.
-         */
-        public static String signRequest(RequestQuery query, String privateKey, String aesKey, boolean bizContextInBody) {
-            String bizContent = query.getBizContent();
-            Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be empty!");
-            String encryptBiZContent = AESEncryptUtils.encrypt(bizContent, aesKey);
-            query.setBizContent(encryptBiZContent);
-            String md5String = SdkHelper.md5Request(query);
-            String sign = SdkHelper.sign(md5String, privateKey);
-            query.setSign(sign);
-            String queryString = "";
-            if (bizContextInBody) {
-                queryString = SdkHelper.buildRequestUrlWithoutBizContext(query);
-            } else {
-                queryString = SdkHelper.buildRequestUrl(query);
-            }
-            return queryString;
-        }
+
 
 
         /**
