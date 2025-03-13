@@ -138,12 +138,21 @@ public final class SdkTools {
         int connectionTimeout = callBackExecutor.getConnectionTimeout();
         int readTimeout = callBackExecutor.getReadTimeout();
         String privateKey = callBackExecutor.getPrivateKey();
-        String sign = signUrl(callbackUrl, privateKey);
+        String body = callBackExecutor.getBody();
+        String sign = "";
+        if(StrUtil.isNotBlank(body)) {
+            sign = signUrlAndBody(callbackUrl, body, privateKey);
+        } else {
+            sign = signUrl(callbackUrl, privateKey);
+        }
         HttpRequest httpRequest = HttpRequest.of(callbackUrl, CharsetUtil.CHARSET_UTF_8)
                 .setConnectionTimeout(connectionTimeout)
                 .setReadTimeout(readTimeout)
                 .header("sign", sign)
                 .method(Method.POST);
+        if (StrUtil.isNotBlank(body)) {
+            httpRequest.body(body);
+        }
         try (HttpResponse execute = httpRequest.execute()) {
             int status = execute.getStatus();
             if (status != 200) {
@@ -164,6 +173,35 @@ public final class SdkTools {
         return SdkHelper.sign(context, privateKey);
     }
 
+    /**
+     * Generates a signature of url and body.
+     *
+     * @param url    context
+     * @param privateKey privateKey
+     * @return sign string.
+     */
+    public static String signUrlAndBody(String url, String body, String privateKey) {
+        String context = SecureUtil.md5(url + body);
+        return SdkHelper.sign(context, privateKey);
+    }
+
+    /**
+     * Generates a signature of a certain context.
+     *
+     * @param url   url
+     * @param body   body
+     * @param sign      sign string
+     * @param publicKey publicKey
+     * @return if verified?
+     */
+    public static boolean verifyUrlAndBody(String url, String body, String sign, String publicKey) {
+        String context = SecureUtil.md5(url + body);
+        try {
+            return RSAUtils.verify(context.getBytes(), publicKey, sign);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * Generates a signature of a certain context.
      *

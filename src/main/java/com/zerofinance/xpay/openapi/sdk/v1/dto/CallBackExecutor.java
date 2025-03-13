@@ -49,4 +49,6 @@ public class CallBackExecutor {
 
     @NonNull
     private String privateKey;
+
+    private String body;
 }
