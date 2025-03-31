@@ -19,21 +19,21 @@
 package com.zerofinance.xpay.openapi.sdk.v1.tools;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.lang.Validator;
+import cn.hutool.core.net.URLDecoder;
 import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.core.util.*;
+import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.Method;
 import cn.hutool.json.JSONUtil;
 import com.zerofinance.xpay.openapi.sdk.v1.constant.ErrorCodeEnum;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.CallBackExecutor;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestExecutor;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.RequestQuery;
-import com.zerofinance.xpay.openapi.sdk.v1.dto.ResponseQuery;
+import com.zerofinance.xpay.openapi.sdk.v1.dto.*;
 import com.zerofinance.xpay.openapi.sdk.v1.entity.RSAKey;
-
-import cn.hutool.core.net.URLDecoder;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -53,7 +53,8 @@ import java.util.Optional;
  */
 public final class SdkTools {
 
-    private SdkTools() {}
+    private SdkTools() {
+    }
 
 
     /**
@@ -65,7 +66,7 @@ public final class SdkTools {
         try {
             Map<String, Object> kyePair = RSAUtils.genKeyPair();
             return RSAKey.builder().privateKey(RSAUtils.getPrivateKey(kyePair))
-                         .publicKey(RSAUtils.getPublicKey(kyePair)).build();
+                    .publicKey(RSAUtils.getPublicKey(kyePair)).build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -76,7 +77,7 @@ public final class SdkTools {
      * Executes the request and get data from Response.
      *
      * @param requestExecutor RequestExecutor
-     * @param <T> Optional
+     * @param <T>             Optional
      */
 
     public static <T> void execute(RequestExecutor requestExecutor) {
@@ -87,9 +88,9 @@ public final class SdkTools {
      * Executes the request and get data from Response.
      *
      * @param requestExecutor RequestExecutor
-     * @param clazz Converts to this class.
+     * @param clazz           Converts to this class.
+     * @param <T>             Result
      * @return data
-     * @param <T> Result
      */
     public static <T> Optional<T> execute(RequestExecutor requestExecutor, Class<T> clazz) {
         String requestUrl = requestExecutor.getRequestUrl();
@@ -97,9 +98,52 @@ public final class SdkTools {
         int readTimeout = requestExecutor.getReadTimeout();
         String publicKey = requestExecutor.getPublicKey();
         String aesKey = requestExecutor.getAesKey();
+        String body = requestExecutor.getBody();
         HttpRequest httpRequest = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
                 .setConnectionTimeout(connectionTimeout)
                 .setReadTimeout(readTimeout)
+                .method(Method.POST);
+        if (StrUtil.isNotBlank(body)) {
+            httpRequest.body(body);
+        }
+        String responseBody;
+        try (HttpResponse execute = httpRequest.execute()) {
+            responseBody = execute.body();
+        }
+        ResponseQuery openApiResult = JSONUtil.toBean(responseBody, ResponseQuery.class);
+        int code = openApiResult.getCode();
+        Assert.isTrue(code == ErrorCodeEnum.OK.getCode(), "An error is occurred from calling remote service：" + responseBody);
+        // 验签
+        boolean verifySignResult = verifyResponse(openApiResult, publicKey);
+        Assert.isTrue(verifySignResult, "Verifying signature encountered an error!");
+
+        ResponseQuery responseQuery = SdkTools.getResponseQuery(openApiResult, aesKey);
+        String data = responseQuery.getData();
+        Optional<T> result = Optional.empty();
+        if (StrUtil.isNotBlank(data) && !ResponseQuery.VOID_DATA.equals(data) && clazz != null) {
+            result = Optional.of(JSONUtil.toBean(data, clazz));
+        }
+        return result;
+    }
+
+    /**
+     * Upload file and get data from Response.
+     *
+     * @param uploadExecutor UploadExecutor
+     * @param clazz          Converts to this class.
+     * @param <T>            Result
+     * @return data
+     */
+    public static <T> Optional<T> upload(UploadExecutor uploadExecutor, Class<T> clazz) {
+        String requestUrl = uploadExecutor.getRequestUrl();
+        int connectionTimeout = uploadExecutor.getConnectionTimeout();
+        int readTimeout = uploadExecutor.getReadTimeout();
+        String publicKey = uploadExecutor.getPublicKey();
+        String aesKey = uploadExecutor.getAesKey();
+        HttpRequest httpRequest = HttpRequest.of(requestUrl, CharsetUtil.CHARSET_UTF_8)
+                .setConnectionTimeout(connectionTimeout)
+                .setReadTimeout(readTimeout)
+                .form("file", uploadExecutor.getFile())
                 .method(Method.POST);
         String responseBody;
         try (HttpResponse execute = httpRequest.execute()) {
@@ -107,19 +151,20 @@ public final class SdkTools {
         }
         ResponseQuery openApiResult = JSONUtil.toBean(responseBody, ResponseQuery.class);
         int code = openApiResult.getCode();
-        Assert.isTrue(code == ErrorCodeEnum.OK.getCode(),"An error is occurred from calling remote service："+ responseBody);
+        Assert.isTrue(code == ErrorCodeEnum.OK.getCode(), "An error is occurred from calling remote service：" + responseBody);
         // 验签
         boolean verifySignResult = verifyResponse(openApiResult, publicKey);
-        Assert.isTrue(verifySignResult,"Verifying signature encountered an error!");
+        Assert.isTrue(verifySignResult, "Verifying signature encountered an error!");
 
         ResponseQuery responseQuery = SdkTools.getResponseQuery(openApiResult, aesKey);
         String data = responseQuery.getData();
         Optional<T> result = Optional.empty();
-        if (StrUtil.isNotBlank(data) && !ResponseQuery.VOID_DATA.equals(data) && clazz != null){
+        if (StrUtil.isNotBlank(data) && !ResponseQuery.VOID_DATA.equals(data) && clazz != null) {
             result = Optional.of(JSONUtil.toBean(data, clazz));
         }
         return result;
     }
+
 
     /**
      * Calling back the outlet's url.
@@ -132,12 +177,21 @@ public final class SdkTools {
         int connectionTimeout = callBackExecutor.getConnectionTimeout();
         int readTimeout = callBackExecutor.getReadTimeout();
         String privateKey = callBackExecutor.getPrivateKey();
-        String sign = signUrl(callbackUrl, privateKey);
+        String body = callBackExecutor.getBody();
+        String sign = "";
+        if (StrUtil.isNotBlank(body)) {
+            sign = signUrlAndBody(callbackUrl, body, privateKey);
+        } else {
+            sign = signUrl(callbackUrl, privateKey);
+        }
         HttpRequest httpRequest = HttpRequest.of(callbackUrl, CharsetUtil.CHARSET_UTF_8)
                 .setConnectionTimeout(connectionTimeout)
                 .setReadTimeout(readTimeout)
                 .header("sign", sign)
                 .method(Method.POST);
+        if (StrUtil.isNotBlank(body)) {
+            httpRequest.body(body);
+        }
         try (HttpResponse execute = httpRequest.execute()) {
             int status = execute.getStatus();
             if (status != 200) {
@@ -150,7 +204,7 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain context.
      *
-     * @param context context
+     * @param context    context
      * @param privateKey privateKey
      * @return sign string.
      */
@@ -159,10 +213,40 @@ public final class SdkTools {
     }
 
     /**
+     * Generates a signature of url and body.
+     *
+     * @param url        context
+     * @param privateKey privateKey
+     * @return sign string.
+     */
+    public static String signUrlAndBody(String url, String body, String privateKey) {
+        String context = SecureUtil.md5(url + body);
+        return SdkHelper.sign(context, privateKey);
+    }
+
+    /**
      * Generates a signature of a certain context.
      *
-     * @param context context
-     * @param sign sign string
+     * @param url               url
+     * @param body              body
+     * @param sign              sign string
+     * @param platformPublicKey platform publicKey
+     * @return if verified?
+     */
+    public static boolean verifyUrlAndBody(String url, String body, String sign, String platformPublicKey) {
+        String context = SecureUtil.md5(url + body);
+        try {
+            return RSAUtils.verify(context.getBytes(), platformPublicKey, sign);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Generates a signature of a certain context.
+     *
+     * @param context   context
+     * @param sign      sign string
      * @param publicKey publicKey
      * @return if verified?
      */
@@ -177,9 +261,9 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain request.
      *
-     * @param query The object of RequestQuery.
+     * @param query      The object of RequestQuery.
      * @param privateKey Private key.
-     * @param aesKey Aes key.
+     * @param aesKey     Aes key.
      * @return a signed string.
      */
     public static String signRequest(RequestQuery query, String privateKey, String aesKey) {
@@ -198,12 +282,31 @@ public final class SdkTools {
      * Verifies if the request is a legal url.
      *
      * @param queryString The string of request.
-     * @param publicKey Public key.
+     * @param publicKey   Public key.
      * @return verified?
      */
     public static boolean verifyRequest(String queryString, String publicKey) {
         try {
-            RequestQuery query  = SdkHelper.buildRequestQuery(queryString);
+            RequestQuery query = SdkHelper.buildRequestQuery(queryString, null);
+            String md5String = SdkHelper.md5Request(query);
+            String sign = query.getSign();
+            boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
+            return verified;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Verifies if the request is a legal url.
+     *
+     * @param queryString The string of request.
+     * @param publicKey   Public key.
+     * @return verified?
+     */
+    public static boolean verifyRequest(String queryString, String publicKey, String body) {
+        try {
+            RequestQuery query = SdkHelper.buildRequestQuery(queryString, body);
             String md5String = SdkHelper.md5Request(query);
             String sign = query.getSign();
             boolean verified = RSAUtils.verify(md5String.getBytes(), publicKey, sign);
@@ -217,13 +320,30 @@ public final class SdkTools {
      * Gets the object of "RequestQuery" from a string request.
      *
      * @param queryString The string of request.
-     * @param aesKey Aes key.
+     * @param aesKey      Aes key.
      * @return RequestQuery.
      */
     public static RequestQuery getRequestQuery(String queryString, String aesKey) {
         UrlQuery parseQuery = new UrlQuery();
         parseQuery.parse(queryString, StandardCharsets.UTF_8);
-        RequestQuery query = SdkHelper.buildRequestQuery(queryString);
+        RequestQuery query = SdkHelper.buildRequestQuery(queryString, null);
+        String aesEncrypt = query.getBizContent();
+        String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
+        query.setBizContent(aesDecrypt);
+        return query;
+    }
+
+    /**
+     * Gets the object of "RequestQuery" from a string request.
+     *
+     * @param queryString The string of request.
+     * @param aesKey      Aes key.
+     * @return RequestQuery.
+     */
+    public static RequestQuery getRequestQuery(String queryString, String aesKey, String body) {
+        UrlQuery parseQuery = new UrlQuery();
+        parseQuery.parse(queryString, StandardCharsets.UTF_8);
+        RequestQuery query = SdkHelper.buildRequestQuery(queryString, body);
         String aesEncrypt = query.getBizContent();
         String aesDecrypt = AESEncryptUtils.decrypt(aesEncrypt, aesKey);
         query.setBizContent(aesDecrypt);
@@ -233,9 +353,9 @@ public final class SdkTools {
     /**
      * Generates a signature of a certain response.
      *
-     * @param query The object of ResponseQuery.
+     * @param query      The object of ResponseQuery.
      * @param privateKey Private key.
-     * @param aesKey Aes key.
+     * @param aesKey     Aes key.
      */
     public static void signResponse(ResponseQuery query, String privateKey, String aesKey) {
         String data = query.getData();
@@ -250,7 +370,7 @@ public final class SdkTools {
     /**
      * Verifies if the response is a legal url.
      *
-     * @param query ResponseQuery.
+     * @param query     ResponseQuery.
      * @param publicKey Public key.
      * @return Verified?
      */
@@ -269,7 +389,7 @@ public final class SdkTools {
     /**
      * Gets the object of "ResponseQuery" from the object of "ResponseQuery".
      *
-     * @param query ResponseQuery.
+     * @param query  ResponseQuery.
      * @param aesKey Aes key.
      * @return ResponseQuery.
      */
@@ -281,11 +401,38 @@ public final class SdkTools {
     }
 
     /**
+     * Generates a signature of a certain request, bizContext will be passed in body.
+     *
+     * @param query            The object of RequestQuery.
+     * @param privateKey       Private key.
+     * @param aesKey           Aes key.
+     * @param bizContextInBody If bizContext should be passed in body.
+     * @return a signed string.
+     */
+    public static String signRequest(RequestQuery query, String privateKey, String aesKey, boolean bizContextInBody) {
+        String bizContent = query.getBizContent();
+        Assert.isTrue(StrUtil.isNotBlank(bizContent), "bizContent must not be empty!");
+        String encryptBiZContent = AESEncryptUtils.encrypt(bizContent, aesKey);
+        query.setBizContent(encryptBiZContent);
+        String md5String = SdkHelper.md5Request(query);
+        String sign = SdkHelper.sign(md5String, privateKey);
+        query.setSign(sign);
+        String queryString = "";
+        if (bizContextInBody) {
+            queryString = SdkHelper.buildRequestUrlWithoutBizContext(query);
+        } else {
+            queryString = SdkHelper.buildRequestUrl(query);
+        }
+        return queryString;
+    }
+
+    /**
      * A helper of SDK.
      */
     static final class SdkHelper {
 
-        private SdkHelper() {}
+        private SdkHelper() {
+        }
 
         /**
          * Md5 RequestQuery.
@@ -300,7 +447,9 @@ public final class SdkTools {
             UrlQuery urlQuery = new UrlQuery();
             // Ascending according to key:
             urlQuery.add(RequestQuery.BIZ_CONTENT, query.getBizContent());
-            urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
+            if (StrUtil.isNotBlank((query.getOutletId()))) {
+                urlQuery.add(RequestQuery.OUTLET_ID, query.getOutletId());
+            }
             if (StrUtil.isNotBlank(query.getVendorId())) {
                 urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
             }
@@ -317,7 +466,7 @@ public final class SdkTools {
         /**
          * Signs the content.
          *
-         * @param content the business content.
+         * @param content    the business content.
          * @param privateKey Private key.
          * @return A signed string.
          */
@@ -330,7 +479,7 @@ public final class SdkTools {
         }
 
         /**
-         * Builds the request url.
+         * Builds the request url, bizContext will be included in request url.
          *
          * @param query RequestQuery.
          * @return a request url.
@@ -338,17 +487,19 @@ public final class SdkTools {
         private static String buildRequestUrl(RequestQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列
-            urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode((query.getBizContent())));
-            urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode((query.getOutletId())));
+            urlQuery.add(RequestQuery.BIZ_CONTENT, URLEncoder.encode(query.getBizContent()));
+            if (StrUtil.isNotBlank(query.getOutletId())) {
+                urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
+            }
             if (StrUtil.isNotBlank(query.getVendorId())) {
-                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode((query.getVendorId())));
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId()));
             }
             if (ObjectUtil.isNotNull(query.getVendorCall())) {
-                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode((String.valueOf(query.getVendorCall()))));
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVendorCall())));
             }
-//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncodeUtil.encode((query.getTimestamp())));
-            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode((query.getVersion())));
-            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode((query.getSign())));
+//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
+            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode(query.getVersion()));
+            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode(query.getSign()));
             return urlQuery.build(StandardCharsets.UTF_8, true);
         }
 
@@ -358,16 +509,30 @@ public final class SdkTools {
          * @param queryString The quest string.
          * @return RequestQuery.
          */
-        private static RequestQuery buildRequestQuery(String queryString) {
+        private static RequestQuery buildRequestQuery(String queryString, String body) {
             UrlQuery parseQuery = new UrlQuery();
             parseQuery.parse(queryString, StandardCharsets.UTF_8);
-            RequestQuery query  = RequestQuery.builder()
-                                              .bizContent(URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8))
-                                              .outletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8))
+            String bizContent = null;
+            String bizContentFromBody = null;
+            String bizContentFromQuery = null;
+            if (StrUtil.isNotBlank(parseQuery.get(RequestQuery.BIZ_CONTENT))) {
+                bizContentFromQuery = URLDecoder.decode(parseQuery.get(RequestQuery.BIZ_CONTENT).toString(), StandardCharsets.UTF_8);
+            }
+            if (StrUtil.isNotBlank(body)) {
+                bizContentFromBody = body;
+            }
+            Validator.validateTrue(!(bizContentFromQuery != null && bizContentFromBody != null), "both of bizContentFromQuery and bizContentFromBody cannot be empty");
+            bizContent = bizContentFromQuery != null ? bizContentFromQuery : bizContentFromBody;
+            Validator.validateTrue(bizContent != null, "bizContent cannot be empty");
+            RequestQuery query = RequestQuery.builder()
+                    .bizContent(bizContent)
 //                    .timestamp(URLDecoder.decode(parseQuery.get(RequestQuery.TIMESTAMP).toString(), StandardCharsets.UTF_8))
-                                              .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
-                                              .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
-                                              .build();
+                    .version(URLDecoder.decode(parseQuery.get(RequestQuery.VERSION).toString(), StandardCharsets.UTF_8))
+                    .sign(URLDecoder.decode(parseQuery.get(RequestQuery.SIGN).toString(), StandardCharsets.UTF_8))
+                    .build();
+            if(ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.OUTLET_ID))){
+                query.setOutletId(URLDecoder.decode(parseQuery.get(RequestQuery.OUTLET_ID).toString(), StandardCharsets.UTF_8));
+            }
             if (ObjectUtil.isNotEmpty(parseQuery.get(RequestQuery.VENDOR_ID))) {
                 query.setVendorId(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_ID).toString(), StandardCharsets.UTF_8));
                 query.setVendorCall(BooleanUtil.toBoolean(URLDecoder.decode(parseQuery.get(RequestQuery.VENDOR_CALL).toString(), StandardCharsets.UTF_8)));
@@ -378,6 +543,30 @@ public final class SdkTools {
             return query;
         }
 
+
+        /**
+         * Builds the request url without bizContext, bizContext will be passed in body.
+         *
+         * @param query RequestQuery.
+         * @return a request url.
+         */
+        private static String buildRequestUrlWithoutBizContext(RequestQuery query) {
+            UrlQuery urlQuery = new UrlQuery();
+            // 升序排列
+            if (StrUtil.isNotBlank(query.getOutletId())) {
+                urlQuery.add(RequestQuery.OUTLET_ID, URLEncoder.encode(query.getOutletId()));
+            }
+            if (StrUtil.isNotBlank(query.getVendorId())) {
+                urlQuery.add(RequestQuery.VENDOR_ID, URLEncoder.encode(query.getVendorId()));
+            }
+            if (ObjectUtil.isNotNull(query.getVendorCall())) {
+                urlQuery.add(RequestQuery.VENDOR_CALL, URLEncoder.encode(String.valueOf(query.getVendorCall())));
+            }
+//            urlQuery.add(RequestQuery.TIMESTAMP, URLEncoder.encode(query.getTimestamp(), StandardCharsets.UTF_8));
+            urlQuery.add(RequestQuery.VERSION, URLEncoder.encode(query.getVersion()));
+            urlQuery.add(RequestQuery.SIGN, URLEncoder.encode(query.getSign()));
+            return urlQuery.build(StandardCharsets.UTF_8, true);
+        }
         /*private static String buildFullResponseUrl(ResponseQuery query) {
             UrlQuery urlQuery = new UrlQuery();
             // 升序排列

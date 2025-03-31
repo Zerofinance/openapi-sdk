@@ -72,7 +72,7 @@ public class RequestQuery {
     /**
      * outletId.
      */
-    @NonNull
+    @Setter
     private String outletId;
 
     @Setter
